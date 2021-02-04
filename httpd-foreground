@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+# Apache gets grumpy about PID files pre-existing
+rm -f /usr/local/apache2/logs/httpd.pid
+
+# Change ownership of media mount
+chown -R daemon:daemon /home/daemon/MAS/media
+
+# Prepare database
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py makemigrations
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py migrate
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py changemappingtablecollation
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py collectstatic --noinput
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py loaddata /home/daemon/MAS/genome/fixtures/groups.json
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py createdefaultusers "${ADMIN_USER_PASSWORD}" "${LUIGI_USER_PASSWORD}"
+/home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py updatepdbnamemappings /home/daemon/MAS/pdb_seqres.txt
+
+# Start luigi daemon
+nohup /home/daemon/miniconda/envs/mas/bin/luigid --background &
+
+# Start server
+exec httpd -DFOREGROUND "$@"
+

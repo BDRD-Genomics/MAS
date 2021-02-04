@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Genome List</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block wide-block">
+        <h1>Genomes</h1>
+        <table id="genome-table" class="display table-hover table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Genome Name</th>
+                    <th>Organism</th>
+                    <th>Genome Length</th>
+                    <th># CDS</th>
+                    <th># CDS Unannotated</th>
+                    <th># Needs Review</th>
+                    <th># Green Flag</th>
+                    <th># Yellow Flag</th>
+                    <th># Red Flag</th>
+                    <th># Endolysin</th>
+                    <th># tRNA</th>
+                    <th>Download Sequence</th>
+                    <th>Nav</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>Genome Name</th>
+                    <th>Organism</th>
+                    <th>Genome Length</th>
+                    <th># CDS</th>
+                    <th># CDS Unannotated</th>
+                    <th># Needs Review</th>
+                    <th># Green Flag</th>
+                    <th># Yellow Flag</th>
+                    <th># Red Flag</th>
+                    <th># Endolysin</th>
+                    <th># tRNA</th>
+                    <th>Download Sequence</th>
+                    <th>Nav</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}
+
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#genome-table').DataTable({
+                pageLength: 25,
+                serverSide: true,
+                processing: true,
+                bSortClasses: false,
+                ajax: {
+                    url: "{% url 'get_phage_data' %}",
+                    type: "GET"
+                    {#dataType: 'json'#}
+                },
+                columns: [
+                    { "data": "genome_name" },
+                    { "data": "organism" },
+                    { "data": "genome_length" },
+                    { "data": "num_cds" },
+                    { "data": "num_unannotated" },
+                    { "data": "num_review" },
+                    { "data": "num_green" },
+                    { "data": "num_yellow" },
+                    { "data": "num_red" },
+                    { "data": "num_endo" },
+                    { "data": "num_trna" },
+                    { "data": "download" },
+                    { "data": "navigator" }
+                ],
+                columnDefs: [
+                    {
+                        targets: [11, 12], /* column index */
+                        orderable: false, /* true or false */
+                    },
+                    { className: "review-flag", targets: [ 5 ] },
+                    { className: "green-flag", targets: [ 6 ] },
+                    { className: "yellow-flag", targets: [ 7 ] },
+                    { className: "red-flag", targets: [ 8 ] },
+                    { className: "endo-flag", targets: [ 9 ] }
+                ]
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    {% load static %}
+    {% load custom_template_tags_filters %}
+    {% get_annotation_flags as annotation_flags %}
+    {% get_bioinformatics_users as bfx_users %}
+    {% get_version as version %}
+
+    <!-- Load universal style sheets -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    {% if dark_mode %}
+        <link rel="stylesheet" href="{% static 'css/dark_theme.css' %}">
+    {% else %}
+        <link rel="stylesheet" href="{% static 'css/light_theme.css' %}">
+    {% endif %}
+
+    {% block css %}{% endblock %}
+
+    {% block head %}
+        <title>MAS</title>
+    {% endblock %}
+</head>
+<body>
+    <div id="page-container">
+    <div id="all-except-footer">
+
+{###################### PRIMARY NAVBAR ######################}
+        <nav id="primary-navbar" class="navbar navbar-default">
+            <div class="container-fluid">
+
+{#           ########## MAS LOGO ###########}
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="{% url 'home' %}">M.A.S.</a>
+                </div>
+
+                <ul class="nav navbar-nav navbar-left">
+
+{#           ########## RESULT NAVIGATION OPTIONS ###########}
+                    <li id="show-nav-options" class="dropdown">
+                        <a href="#" role="button">
+                            Show Result Navigation Options <span class="caret"></span>
+                        </a>
+                    </li>
+
+{#           ########## ADDITIONAL NAVIGATION OPTIONS ###########}
+                    <li id="show-additional-nav-options" class="dropdown">
+                        <a href="#" role="button">
+                            Show Additional Navigation Options <span class="caret"></span>
+                        </a>
+                    </li>
+
+                </ul>
+
+{#           ########## USER MANAGEMENT ###########}
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+                            {% if user.is_authenticated %}
+                                {{ user.get_username }}
+                            {% else %}
+                                Guest
+                            {% endif %}
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            <li><a href="{% url 'logout' %}">Logout</a></li>
+                            <li><a href="{% url 'password_change' %}">Change Password</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" id="toggle-theme">
+                            {% if dark_mode %}
+                               <i class="fa fa-sun-o fa-lg"></i>
+                            {% else %}
+                                <i class="fa fa-moon-o fa-lg"></i>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+{###################### RESULT NAVIGATION ITEMS ######################}
+        <nav id="navigation-navbar" class="navbar navbar-default dropdown-navbar" style="display: none">
+{#           ########## FLAG NAV SELECTOR ###########}
+            <ul class="nav navbar-nav navbar-left">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+                        Navigate by Flag <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for flag in annotation_flags %}
+                            <li><a href="{% url 'flag-nav-redirect' flag.0 %}">{{ flag.1 }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+
+{#           ########## GENOME NAV SELECTOR ###########}
+            <form class="navbar-form navbar-left">
+                <div class="form-group" id="genome-nav-form">
+                    {{ genome_search_form.search_genome }}
+                </div>
+            </form>
+
+{#           ########## ASSIGNMENT NAV SELECTOR ###########}
+            <ul class="nav navbar-nav navbar-left">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+                        Navigate by Assignment <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        {% for bfx_user in bfx_users %}
+                            <li><a href="{% url 'assignment-nav-redirect' bfx_user %}">{{ bfx_user }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+{###################### ADDITIONAL NAVIGATION ITEMS ######################}
+        <nav id="additional-navbar" class="navbar navbar-default dropdown-navbar" style="display: none">
+            <ul class="nav navbar-nav navbar-left">
+{#           ########## UPLOAD PHAGE GENOME ###########}
+                <li>
+                    <a href="{% url 'genome:upload_phage' %}">
+                        Upload Phage Genome
+                    </a>
+                </li>
+{#           ########## UPLOAD BACTERIAL GENOME ###########}
+                <li>
+                    <a href="{% url 'genome:upload_bacterial_genome' %}">
+                        Upload Bacterial Genome
+                    </a>
+                </li>
+{#           ########## UPLOAD CUSTOM GENOME ###########}
+                <li>
+                    <a href="{% url 'genome:upload_custom_genome' %}">
+                        Upload Custom Genome
+                    </a>
+                </li>
+{#           ########## DELETE GENOME ###########}
+                <li>
+                    <a href="{% url 'genome:phage_delete' %}">
+                        Delete Genome
+                    </a>
+                </li>
+{#           ########## GENOME LIST ###########}
+                <li>
+                    <a href="{% url 'genome:phage_list' %}">
+                        Genome List
+                    </a>
+                </li>
+{#           ########## UPLOAD ANNOTATIONS ###########}
+                <li>
+                    <a href="{% url 'genome:upload_annotations' %}">
+                        Upload Annotations From Excel
+                    </a>
+                </li>
+{#           ########## LIST ANNOTATIONS ###########}
+                <li>
+                    <a href="{% url 'genome:annotation_list' %}">
+                        Annotation List
+                    </a>
+                </li>
+{#           ########## GENOME SIMILARITY MATRIX ###########}
+{#                <li>#}
+{#                    <a href="{% url 'similarity' %}">#}
+{#                        Genome Similarity Matrix#}
+{#                    </a>#}
+{#                </li>#}
+            </ul>
+        </nav>
+
+        {% block body %}{% endblock %}
+
+         <!-- Load universal javascript -->
+        <script type="text/javascript" src="{% static 'js/jquery-3.5.1.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/bootstrap.js' %}"></script>
+        <script type="application/javascript" src="{% static 'js/popper.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/select2.js' %}"></script>
+
+        {% block javascript %}{% endblock %}
+
+        <script>
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            };
+
+            $(document).ready(function() {
+
+                $('#toggle-theme').click(function () {
+                    $.ajax({
+                        url: "{% url 'change-theme' %}",
+                        type: 'post',
+                        headers: {'X-CSRFToken': getCookie('csrftoken')},
+                        success: function () { location.reload(); }
+                    });
+                });
+
+                var genome_nav = $('#id_search_genome')
+
+                genome_nav.select2({
+                    multiple: false,
+                    placeholder: 'Navigate by Genome',
+                    dropdownAutoWidth: true
+                });
+
+                genome_nav.change(function () {
+                    console.log(this);
+                    var genome_name = $(this).children("option:selected").text();
+                    {# Solution found on stackoverflow.com/questions/17832194/ to use javascript variable in Django URL #}
+                    location.href = '{% url 'phage-nav-redirect' 12345 %}'.replace(/12345/, genome_name);
+                    {#location.href = '/viewer/GenomeNavigator-' + $(this).children("option:selected").text();#}
+                });
+
+                $('#show-nav-options').click(function () {
+                    if ($('#show-additional-nav-options').hasClass('open')) {
+                        $('#additional-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-additional-nav-options').removeClass('open');
+                    }
+
+                    if ($(this).hasClass('open')) {
+                        $('#navigation-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-nav-options').removeClass('open');
+                    } else {
+                        $('#navigation-navbar').show();
+                        $('#primary-navbar').css('margin-bottom', '0');
+                        $('#show-nav-options').addClass('open');
+                    }
+                });
+
+                $('#show-additional-nav-options').click(function () {
+                    if ($('#show-nav-options').hasClass('open')) {
+                        $('#navigation-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-nav-options').removeClass('open');
+                    }
+
+                    if ($(this).hasClass('open')) {
+                        $('#additional-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-additional-nav-options').removeClass('open');
+                    } else {
+                        $('#additional-navbar').show();
+                        $('#primary-navbar').css('margin-bottom', '0px');
+                        $('#show-additional-nav-options').addClass('open');
+                    }
+                });
+            });
+
+        </script>
+    </div>
+        <footer class="footer">
+            <div class="container-fluid">
+                <span class="text-muted">MAS (Manual Annotation Studio) {{ version }}</span>
+                {% if in_dev %}
+                    <br>
+                    <i>In development mode</i>
+                {% endif %}
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

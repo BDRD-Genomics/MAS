@@ -1,0 +1,124 @@
+{% load static %}
+{% load custom_template_tags_filters %}
+
+{% csrf_token %}
+{% if annotations or annotation %}
+{#    <form action="{% url 'genome:annotation_bulk' %}" method="post">#}
+{#    {% csrf_token %}#}
+{#    <input type="submit" name="download" id="download-fasta-button" value="Download Selected Fasta">#}
+
+{#    {% if upload_form %}#}
+{#        Assign to: {{ upload_form.assign_to }}#}
+{#        <input type="submit" name="assign_to_user" id="assign-button" value="Assign Selected">#}
+{#    {% endif %}#}
+
+{#    <input type="submit" name="excel" id="download-excel-button" value="Download Selected Excel">#}
+
+    <table id="annotation-table" class="table table-hover table-striped search compact annotationTable" width="100%">
+        <thead>
+            <tr>
+{#                <th><input type="checkbox" id="select-all"><p><strong>Select All</strong></p></th>#}
+                <th>Sequence</th>
+                <th>Feature</th>
+                <th>Accession</th>
+                <th>Annotation</th>
+                <th>Length</th>
+                <th>Public Notes</th>
+                <th>Private Notes</th>
+                <th>Flag</th>
+                <th>Assigned User</th>
+                <th>Download Annotation</th>
+                <th>History</th>
+                <th>View Results</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if annotations %}
+                {% for annotation in annotations %}
+                    <tr>
+{#                        <td><input type="checkbox" class="action-select" name="annotation-{{ annotation.pk }}" id="annotation-{{ annotation.pk }}" value="{{ annotation.pk }}"></td>#}
+                        <td class="details-cell">
+                            <div class="glyphicon glyphicon-menu-right aa-control details-control"></div>
+                            <input type="hidden" class="annotation" value="{{ annotation.pk }}">
+                        </td>
+
+                        <td>
+                            <ul class="list-group">
+                             {% for feature in annotation.feature_set.all %}
+                                 <li class="list-group-item list-group-item-text">
+                                <a href="{% url 'genome:feature_detail' feature.pk %}">
+                                    {{ feature }}
+                                 </a>
+                                </li>
+                             {% endfor %}
+                            </ul>
+                        </td>
+                        <td>{{ annotation.id|accession }}</td>
+                        <td><a href="{% url 'genome:annotation_detail' annotation.pk%}">{{ annotation.annotation }}</a></td>
+                        <td>{{ annotation.sequence|length }}</td>
+                        <td>{{ annotation.public_notes }}</td>
+                        <td>{{ annotation.private_notes }}</td>
+                            {% if annotation.get_flag_display == 'GREEN' %}
+                                <td class="green-flag">{{ annotation.get_flag_display }}</td>
+                            {% elif annotation.get_flag_display == 'YELLOW' %}
+                                <td class="yellow-flag">{{ annotation.get_flag_display }}</td>
+                            {% elif annotation.get_flag_display == 'RED' %}
+                                <td class="red-flag">{{ annotation.get_flag_display }}</td>
+                            {% elif annotation.get_flag_display == 'ENDOLYSIN' %}
+                                <td class="endo-flag">{{ annotation.get_flag_display }}</td>
+                            {% elif annotation.get_flag_display == 'REVIEW NAME' %}
+                                <td class="review-flag">{{ annotation.get_flag_display }}</td>
+                            {% else %}
+                                <td>{{ annotation.get_flag_display }}</td>
+                            {% endif %}
+                        <td>{{ annotation.assigned_to }}</td>
+                        <td align="center">
+                            <a href="{% url 'genome:annotation_download' annotation.pk %}">
+                                <div class="glyphicon glyphicon-download"></div>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'genome:annotation_history' annotation.pk %}">
+                                <i class="fa fa-history"></i>
+                            </a>
+                        </td>
+                        <td>
+                            {% if phage %}
+
+                                <a href="{% url 'view-results' accession=annotation.id|accession navigator='PhageNavigator' nav_arg=phage.genome_name %}">
+                                    <div class="glyphicon glyphicon-hand-right"></div>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accession-redirect' accession=annotation.id|accession %}">
+                                    <div class="glyphicon glyphicon-hand-right"></div>
+                                </a>
+
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+{#                <th>Select</th>#}
+                <th>Sequence</th>
+                <th>Feature</th>
+                <th>Accession</th>
+                <th>Annotation</th>
+                <th>AA Length</th>
+                <th>Public Notes</th>
+                <th>Private Notes</th>
+                <th>Flag</th>
+                <th>User</th>
+                <th>Download Annotation</th>
+                <th>History</th>
+                <th>View Results</th>
+            </tr>
+        </tfoot>
+    </table>
+    </form>
+{% else %}
+    <p>No annotations are available.</p>
+{% endif %}

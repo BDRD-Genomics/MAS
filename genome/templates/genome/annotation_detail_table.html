@@ -1,0 +1,32 @@
+{% load custom_template_tags_filters %}
+
+{% if annotation %}
+<h1>Annotation Details</h1>
+        <table class="table-condensed">
+            <tr><td><b>ID: </b></td><td>{{ annotation.id }}</td></tr>
+            <tr><td><b>Accession: </b></td><td>{{ annotation.id|accession }}</td></tr>
+            <tr><td><b>Annotation: </b></td><td>{{ annotation.annotation }}</td></tr>
+            <tr><td><b>Sequence: </b></td><td>{{ annotation.sequence|add_sequence_breaks|linebreaks }}</td></tr>
+            <tr><td><b>Public Note:</b></td><td>{{ annotation.public_notes }}</td></tr>
+            <tr><td><b>Private Note:</b></td><td>{{ annotation.private_notes }}</td></tr>
+            <tr><td><b>Flag:</b></td>
+                    {% if annotation.get_flag_display == 'GREEN' %}
+                        <td class="green-flag">{{ annotation.get_flag_display }}</td>
+                    {% elif annotation.get_flag_display == 'YELLOW' %}
+                        <td class="yellow-flag">{{ annotation.get_flag_display }}</td>
+                    {% elif annotation.get_flag_display == 'RED' %}
+                        <td class="red-flag">{{ annotation.get_flag_display }}</td>
+                    {% elif annotation.get_flag_display == 'ENDOLYSIN' %}
+                        <td class="endo-flag">{{ annotation.get_flag_display }}</td>
+                    {% else %}
+                        <td>{{ annotation.get_flag_display }}</td>
+                    {% endif %}
+            </tr>
+            <tr><td><b>Assigned To:</b></td><td>{{ annotation.assigned_to }}</td></tr>
+            <tr><td><b><a href="{% url 'genome:annotation_download' annotation.pk %}">Download Annotation</a></b></td></tr>
+        </table>
+
+{% else %}
+
+<p>No Annotations</p>
+{% endif %}

@@ -1,0 +1,66 @@
+# Use the official image as a parent image.
+FROM httpd:2.4.46
+
+WORKDIR /root
+
+# Set environment variables
+ARG MYSQL_ROOT_PASSWORD
+ENV DEVELOPER_MODE=TRUE
+ENV MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD"
+
+# Download required packages for set-up
+RUN apt-get update && apt-get install -y curl ca-certificates libapr1-dev libaprutil1-dev build-essential iputils-ping openssh-client sudo
+
+# Set up daemon user
+RUN mkdir /home/daemon
+RUN chown -R daemon:daemon /home/daemon
+RUN usermod daemon --home /home/daemon
+WORKDIR /home/daemon
+USER daemon
+
+# Download and install miniconda
+RUN curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh > Miniconda3-latest-Linux-x86_64.sh
+RUN bash Miniconda3-latest-Linux-x86_64.sh -b -p /home/daemon/miniconda
+
+# Copy project to image
+COPY --chown=daemon:daemon . ./MAS
+
+# Create mas conda environment
+RUN /home/daemon/miniconda/bin/conda env create --file /home/daemon/MAS/mas-environment.yml
+RUN /home/daemon/miniconda/bin/conda init
+RUN /home/daemon/miniconda/bin/conda clean -a -y
+
+# Collect static files
+WORKDIR /home/daemon/MAS
+RUN mkdir static-files
+RUN /home/daemon/miniconda/envs/mas/bin/python manage.py collectstatic --noinput
+
+# Create Terminase blast database
+RUN /home/daemon/miniconda/envs/mas/bin/makeblastdb -dbtype prot -in /home/daemon/MAS/databases/terminase/phage_terminases.fasta -input_type fasta -title "Terminase Database" -out /home/daemon/MAS/databases/terminase/terminase_db
+
+# Generate Secret Key
+RUN /home/daemon/miniconda/envs/mas/bin/python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())' > /home/daemon/MAS/MAS/settings_files/secret_key.txt
+
+# Download PDB chain info. It will be loaded into django db on MAS container start-up.
+RUN curl ftp://ftp.wwpdb.org/pub/pdb/derived_data/pdb_seqres.txt.gz > pdb_seqres.txt.gz
+RUN gzip -d pdb_seqres.txt.gz
+
+# Dowload Databases
+#RUN mkdir /home/daemon/databases
+#WORKDIR /home/daemon/databases
+#RUN curl http://gwdu111.gwdg.de/~compbiol/uniclust/2020_06/UniRef30_2020_06_hhsuite.tar.gz > UniRef30_2020_06_hhsuite.tar.gz
+#RUN curl ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz > uniprot_sprot.fasta.gz
+#RUN gzip -d uniprot_sprot.fasta.gz
+#RUN mkdir /home/daemon/databases/swissprot
+#RUN /home/daemon/miniconda/envs/mas/bin/makeblastdb -dbtype prot -in uniprot_sprot.fasta -input_type fasta -title SwissProt -out /home/daemon/databases/swissprot/swissprot
+#RUN rm uniprot_sprot.fast*
+
+USER root
+
+RUN /home/daemon/miniconda/envs/mas/bin/mod_wsgi-express install-module
+
+RUN cp /home/daemon/miniconda/envs/mas/lib/python3*/site-packages/mod_wsgi/server/mod_wsgi*.so /usr/local/apache2/modules/mod_wsgi.so
+
+COPY httpd.conf /usr/local/apache2/conf/httpd.conf
+
+COPY httpd-foreground /usr/local/bin/httpd-foreground

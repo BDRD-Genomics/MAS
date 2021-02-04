@@ -1,0 +1,40 @@
+[
+  {
+    "model": "auth.Group",
+    "fields": {
+      "name": "Data Editors",
+      "permissions": [
+        ["add_annotation", "genome", "annotation"],
+        ["change_annotation", "genome", "annotation"],
+        ["delete_annotation", "genome", "annotation"],
+        ["view_annotation", "genome", "annotation"],
+        ["add_feature", "genome", "feature"],
+        ["change_feature", "genome", "feature"],
+        ["delete_feature", "genome", "feature"],
+        ["view_feature", "genome", "feature"],
+        ["add_historicalannotation", "genome", "historicalannotation"],
+        ["change_historicalannotation", "genome", "historicalannotation"],
+        ["delete_historicalannotation", "genome", "historicalannotation"],
+        ["view_historicalannotation", "genome", "historicalannotation"],
+        ["add_genome", "genome", "genome"], ["change_genome", "genome", "genome"],
+        ["delete_genome", "genome", "genome"], ["view_genome", "genome", "genome"],
+        ["add_blastp_result", "result_viewer", "blastp_result"],
+        ["change_blastp_result", "result_viewer", "blastp_result"],
+        ["delete_blastp_result", "result_viewer", "blastp_result"],
+        ["view_blastp_result", "result_viewer", "blastp_result"],
+        ["add_hhsearch_result", "result_viewer", "hhsearch_result"],
+        ["change_hhsearch_result", "result_viewer", "hhsearch_result"],
+        ["delete_hhsearch_result", "result_viewer", "hhsearch_result"],
+        ["view_hhsearch_result", "result_viewer", "hhsearch_result"],
+        ["add_pdb_accession_mapping", "result_viewer", "pdb_accession_mapping"],
+        ["change_pdb_accession_mapping", "result_viewer", "pdb_accession_mapping"],
+        ["delete_pdb_accession_mapping", "result_viewer", "pdb_accession_mapping"],
+        ["view_pdb_accession_mapping", "result_viewer", "pdb_accession_mapping"],
+        ["add_rpsblast_result", "result_viewer", "rpsblast_result"],
+        ["change_rpsblast_result", "result_viewer", "rpsblast_result"],
+        ["delete_rpsblast_result", "result_viewer", "rpsblast_result"],
+        ["view_rpsblast_result", "result_viewer", "rpsblast_result"]
+      ]
+    }
+  }
+]

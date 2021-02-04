@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>MAS</title>
+{% endblock %}
+
+{% block body %}
+    <div class="block">
+        <div style="padding: 10px 0px 30px 40px">
+            <h2>Welcome to Manual Annotation Studio!</h2>
+            <h4>Please use one of the navigation options above to continue. Start by uploading a genome.</h4>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="block">
+        <div style="padding: 20px 0px 30px 40px">
+            <h4>This week you have annotated {{ annotated_this_week }} proteins.</h4>
+            <h4>Last week you annotated {{ annotated_last_week }} proteins.</h4>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

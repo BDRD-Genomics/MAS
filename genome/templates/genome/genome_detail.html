@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | {{ genome.genome_name }}</title>
+    <script src="/static/js/d3.min.js" charset="UTF-8"></script>
+    {{ phage_data|json_script:"phage_data" }}
+    {{ feature_data|json_script:"feature_data" }}
+{% endblock %}
+
+{% block body %}
+    <div class="block">
+        <h1>Genome Details: {{ genome.genome_name }}</h1>
+            <table class="table-condensed">
+            {% for genome in genome_info %}
+                <tr><td><b>ID: </b></td><td>{{ genome.pk }}</td></tr>
+                <tr><td><b>Organism: </b></td><td>{{ genome.organism }}</td></tr>
+                <tr><td><b>Genome Length: </b></td><td>{{ genome.genome_length }}</td></tr>
+                <tr><td><b># CDS: </b></td> <td>{{ genome.cds_count }}</td></tr>
+                <tr><td><b># CDS Unannotated: </b></td><td>{{ genome.unpolished_cds_count }}</td></tr>
+                <tr><td class="review-flag"><b># Need Review: </b></td><td>{{ genome.review_name_cds_count }}</td></tr>
+                <tr><td class="green-flag"><b># Green Flag: </b></td><td>{{ genome.green_cds_count }}</td></tr>
+                <tr><td class="yellow-flag"><b># Yellow Flag: </b></td><td>{{ genome.yellow_cds_count }}</td></tr>
+                <tr><td class="red-flag"><b># Red Flag: </b></td><td>{{ genome.red_cds_count }}</td></tr>
+                <tr><td class="endo-flag"><b># Endolysin: </b></td><td>{{ genome.endolysin_cds_count }}</td></tr>
+                <tr><td><b># tRNA: </b></td><td>{{ genome.trna_count }}</td></tr>
+                <tr><td><b># Repeat Region: </b></td><td>{{ genome.repeat_region_count }}</td></tr>
+                <tr><td><b><a href="{% url 'genome:phage_download_fasta' genome.pk %}">download fasta</a></b></td></tr>
+                <tr><td><b><a href="{% url 'genome:download_deliverables' genome.pk %}">download deliverables</a></b></td></tr>
+            {% endfor %}
+            </table>
+    </div>
+
+    {% if features|length < 1000 %}
+        <div class="block">
+            <svg id="chart" class="chart" width="100%" height="260"></svg>
+        </div>
+    {% endif %}
+
+    <div class="block">
+        <h1>Annotations of {{ genome.genome_name }}</h1>
+        {% include 'genome/annotation_list_table_serverside.html' %}
+    </div>
+
+    <div class="block">
+        <h1>Features of {{ genome.genome_name }}</h1>
+        {% include 'genome/features_table.html' %}
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script>
+        var GENOME_LENGTH = {{ genome_length }};
+        var GENOME_ID = {{ genome.id }};
+        var GET_AA_SEQ_URL = "{% url 'genome:get_aa_sequence' %}";
+        var GET_ANNO_DATA_URL = "{% url 'get_annotation_data' %}";
+        var GET_FEATURE_SEQ_URL = "{% url 'genome:get_feature_sequence' %}";
+    </script>
+{#    <script type="application/javascript" src="{% static "genome/genome.js" %}" ></script>#}
+    <script type="application/javascript" src="{% static "result_viewer/genome_visualization.js" %}" ></script>
+    <script type="application/javascript" src="{% static "genome/feature_table.js" %}" ></script>
+    <script type="text/javascript" src="{% static 'genome/annotation_list_serverside.js' %}"></script>
+{% endblock %}

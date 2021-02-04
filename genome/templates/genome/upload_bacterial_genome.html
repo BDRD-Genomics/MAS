@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{%  static "genome/genome.css" %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Upload Bacterial Genome</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block">
+        <div id="upload-form-spacer">
+            <h1> Upload Bacterial Genome</h1>
+            <form name="Form" id="form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if upload_form.errors %}
+                    {{ upload_form.errors }}
+                {% endif %}
+
+                <p>Name: {{ upload_form.name }}</p>
+                {% if upload_form.errors.name.data.0.code == 1 %}
+                    <p>Continue with this name?: {{ upload_form.checkbox }}</p>
+                {% endif %}
+
+                    <p>Genome fasta file: {{ upload_form.upload }}</p>
+
+                    <p>Assign to: {{ upload_form.assign_to }}</p>
+
+                <button class="btn btn-success button" type="submit" id="genome-submit">Submit</button>
+                <span id="upload-message">Gene and tRNA finding will run in background. It may take a few minutes for your genome to appear in the database.</span>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="loader" style="display: none" id="load"></div>
+{% endblock %}
+
+{% block javascript %}
+{#    <script type="application/javascript" src="{% static "" %}" ></script>#}
+{#    <script type="application/javascript">#}
+{#        $(document).ready(function() {#}
+{#           $('#genome-submit').click(function() {#}
+{#               $('#upload-message').show();#}
+{#           })#}
+{#        })#}
+{#    </script>#}
+{% endblock %}

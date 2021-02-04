@@ -1,0 +1,59 @@
+<!--used when displaying features in phage details-->
+{% load static %}
+{% load custom_template_tags_filters %}
+
+{% if features %}
+    <table class="table table-hover table-striped search featureTable" width="100%">
+        <thead>
+            <tr>
+                <th>Feature_Sequence</th>
+                <th>Genome Name</th>
+                <th>Feature Type</th>
+                <th>Strand</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Annotation</th>
+                <th>Flag</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feature in features %}
+            <tr>
+                <input type="hidden" class="feature" value="{{ feature.pk }}"/>
+                <td class="details-cell">
+                    <div class="glyphicon glyphicon-menu-right sequence-control details-control"></div>
+                </td>
+                <td><a href="{% url 'genome:phage_detail' feature.genome.pk %}">{{ feature.genome|safe }}</a> </td>
+                <td>{{ feature.type|safe }}</td>
+                <td>{{ feature.strand|safe }}</td>
+                <td>{{ feature.start|safe }}</td>
+                <td>{{ feature.stop|safe }}</td>
+    <!--            have annotation link to specific annotation-->
+                <td>
+                    {% if feature.annotation %}
+                    <a href="{% url 'genome:annotation_detail' feature.annotation.pk %}">{{ feature.annotation|safe }}</a>
+                    {% else %}
+                    {{ feature.annotation|safe }}
+                    {% endif %}
+                </td>
+                <td>{{ feature.annotation.get_flag_display|safe }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Feature_Sequence</th>
+                <th>Genome Name</th>
+                <th>Feature Type</th>
+                <th>Strand</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Annotation</th>
+                <th>Flag</th>
+            </tr>
+        </tfoot>
+    </table>
+
+{% else %}
+    <p>No features are available.</p>
+{% endif %}

@@ -1,0 +1,15 @@
+{% load static %}
+{% load custom_template_tags_filters %}
+
+<div>
+
+{% if genome %}
+    <p>
+    >{{ genome }}<br />
+    {{ genome.genome_sequence|add_sequence_breaks }}
+    </p>
+{% else %}
+    <p>No genome information to show.</p>
+{% endif %}
+
+</div>

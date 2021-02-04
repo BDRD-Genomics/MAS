@@ -1,0 +1,14 @@
+{% load static %}
+{% load custom_template_tags_filters %}
+
+<link rel="stylesheet" href="{% static 'js/genome.css' %}">
+<div style="font-family: monospace">
+{% if annotation %}
+    {{ header }}<br>
+    {{ annotation.sequence|add_sequence_breaks|linebreaks}}
+{% else %}
+    <p>No amino acid sequence information to show.</p>
+{% endif %}
+</div>
+
+

@@ -1,0 +1,80 @@
+version: "3.7"
+services:
+  messagebroker:
+    image: rabbitmq:3.8.9
+    container_name: mas-message-broker
+    restart: always
+    ports:
+      - target: 5672
+        published: 5672
+        protocol: tcp
+        mode: host
+    networks:
+      - masnet
+
+  db:
+    image: mariadb:10.5
+    container_name: mas-sql-server
+    restart: always
+    volumes:
+      - type: volume
+        source: db-data
+        target: /var/lib/mysql
+        volume:
+          nocopy: true
+    ports:
+      - target: 3306
+        published: 3307
+        protocol: tcp
+        mode: host
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "mas"
+    networks:
+      - masnet
+
+  mas:
+    restart: always
+    build:
+      context: .
+      dockerfile: mas-dockerfile
+      args:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - db
+      - messagebroker
+    image: mas:1.0
+    container_name: mas
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      ADMIN_USER_PASSWORD: ${ADMIN_USER_PASSWORD}
+      LUIGI_USER_PASSWORD: ${LUIGI_USER_PASSWORD}
+      DEVELOPER_MODE: ${DEVELOPER_MODE}
+      ALLOWED_HOST: ${ALLOWED_HOST}
+      LD_PRELOAD: "/home/daemon/miniconda/envs/mas/lib/python3.8/site-packages/libfaketime/vendor/libfaketime/src/libfaketime.so.1"
+      DONT_FAKE_MONOTONIC: 1
+      FAKETIME_DID_REEXEC: "true"
+    ports:
+      - target: 80
+        published: 8080
+        protocol: tcp
+        mode: host
+      - target: 8082
+        published: 8082
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: volume
+        source: masmedia
+        target: /home/daemon/MAS/media
+        volume:
+          nocopy: true
+    networks:
+      - masnet
+
+networks:
+  masnet:
+
+volumes:
+  masmedia:
+  db-data:

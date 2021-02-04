@@ -1,0 +1,9 @@
+.idea/*
+*.pyc
+*.sqlite3
+*/migrations/*
+*/__pycache__/
+.idea/
+MAS/settings/__init__.py
+mas_backup*.bundle
+MAS/settings_files/secret_key.txt

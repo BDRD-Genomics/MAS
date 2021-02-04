@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_template_tags_filters %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Annotation Detail</title>
+{% endblock %}
+
+{% block body %}
+    <div class="block">
+        {% include 'genome/annotation_detail_table.html' %}
+
+        {% if user|has_permission:'genome.change_annotation' %}
+            <h4><a href="{% url 'accession-redirect' annotation.pk|accession %}">Edit Annotation</a></h4>
+        {% endif %}
+    </div>
+
+    <div class="block">
+        <h1>Features associated with {{ annotation.id|accession }}</h1>
+        {% with annotation.feature_set.all as features %}
+            {% include 'genome/features_table.html' %}
+        {% endwith %}
+    </div>
+
+    <div class="block wide-block">
+        <h1>Genomes associated with {{ annotation.id|accession }}</h1>
+        {% include 'genome/genome_list_table.html' %}
+    </div>
+
+    <div class="block wide-block">
+        <h1>Other annotations with the exact name: {{ annotation.annotation }}</h1>
+        {% if exact_names %}
+            {% if exact_names|length > 100 %}
+                There are {{ exact_names|length }} annotations with the exact name. Too many to show.
+            {% else %}
+                {% with exact_names as annotations %}
+                    {% include 'genome/annotation_list_table.html' %}
+                {% endwith %}
+            {% endif %}
+        {% else %}
+            No annotations with the exact name: {{ annotation.annotation }}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script>
+        var GET_AA_SEQ_URL = "{% url 'genome:get_aa_sequence' %}";
+        var GET_FEATURE_SEQ_URL = "{% url 'genome:get_feature_sequence' %}";
+    </script>
+{#    <script type="application/javascript" src="{% static "genome/genome.js" %}" ></script>#}
+    <script type="application/javascript" src="{% static "genome/feature_table.js" %}" ></script>
+{#    <script type="application/javascript" src="{% static "genome/annotation_table.js" %}" ></script>#}
+    <script>
+        $(document).ready(function() {
+            $('#genome-table').DataTable({
+                processing: true,
+                bSortClasses: false,
+                columnDefs: [
+                    {
+                        targets: [11, 12], /* column index */
+                        orderable: false, /* true or false */
+                    },
+                    { className: "review-flag", targets: [ 5 ] },
+                    { className: "green-flag", targets: [ 6 ] },
+                    { className: "yellow-flag", targets: [ 7 ] },
+                    { className: "red-flag", targets: [ 8 ] },
+                    { className: "endo-flag", targets: [ 9 ] }
+                ]
+            });
+
+            var AnnotationTable = $('#annotation-table').DataTable({
+                order: [[ 2, "asc" ]],
+                orderClasses: false,
+                processing: true,
+                columnDefs: [
+                    {
+                        targets: [0, 1, 9, 10, 11], /* column index */
+                        orderable: false, /* true or false */
+                    },
+                    { className: "centered", targets: [ 9, 10, 11 ] }
+                ]
+            });
+            $('table').on('click', 'tbody > tr > td > div.aa-control', function() {
+                var table_id = $(this).closest('table').attr('id');
+
+                var row = AnnotationTable.table("#"+table_id).row($(this).closest('tr'));
+
+                var annotation_id = $(this).closest('td').find("input:hidden[class='annotation']").attr("value");
+
+                if ( row.child.isShown() )
+                {
+                    // This row is already open - close it
+                    row.child.hide();
+                    $(this).removeClass('shown');
+                }
+                else{
+                    // Add class for CSS recognition
+                    $(this).addClass('shown');
+                    if (annotation_id !== undefined) {
+                        $.ajax({
+                            url: "{% url 'genome:get_aa_sequence' %}",
+                            type: "GET",
+                            data: {'annotation_id': annotation_id},
+                            dataType: 'html',
+                            success: function (annotation) {
+                                row.child('<div id="annotation_"'+annotation_id+' class="annotation">'+ annotation +'</div>').show();
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

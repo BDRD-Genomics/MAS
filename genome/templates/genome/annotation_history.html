@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load custom_template_tags_filters %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Annotation History</title>
+{% endblock %}
+
+{% block body %}
+    {% if current_annotation %}
+        <div class="block">
+            <h1>Current Annotation</h1>
+            <table class="table-condensed">
+                <tr><td><b>ID: </b></td><td>{{ current_annotation.id }}</td></tr>
+                <tr><td><b>Accession: </b></td><td>{{ current_annotation.id|accession }}</td></tr>
+                <tr><td><b>Annotation: </b></td><td>{{ current_annotation.annotation }}</td></tr>
+                <tr><td><b>Amino Acid Sequence: </b></td><td>{{ current_annotation.sequence|add_sequence_breaks|linebreaks }}</td></tr>
+                <tr><td><b>Public Note:</b></td><td>{{ current_annotation.public_notes }}</td></tr>
+                <tr><td><b>Private Note:</b></td><td>{{ current_annotation.private_notes }}</td></tr>
+                <tr><td><b>Flag:</b></td><td>{{ current_annotation.get_flag_display }}</td></tr>
+                <tr><td><b>Assigned To:</b></td><td>{{ current_annotation.assigned_to }}</td></tr>
+                <tr><td><b><a href="{% url 'genome:annotation_download' current_annotation.pk %}">Download Annotation</a></b></td></tr>
+            </table>
+        </div>
+
+        <div class="block">
+            <h1>History of {{ current_annotation.accession }}</h1>
+            {% include 'genome/annotation_history_table.html' %}
+        </div>
+    {% else %}
+        No Annotation
+    {% endif %}
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="application/javascript" src="{% static "genome/genome.js" %}" ></script>
+{% endblock %}

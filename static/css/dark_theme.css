@@ -1,0 +1,196 @@
+:root {
+    --primary-background: #333;
+    --secondary-background: #666;
+    --forground-light: #ccc;
+    --highlight: #fcfdbf;
+    --text-color: #111;
+}
+
+body {
+    background-color: var(--primary-background);
+    color: var(--text-color);
+}
+
+a {
+    color: #42aece;
+}
+
+#page-container {
+    position: relative;
+    min-height: 100vh;
+}
+
+#all-except-footer {
+    padding-bottom: 25px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 25px;
+}
+
+table.dataTable td {
+    color: var(--forground-light);
+}
+
+table.dataTable tbody tr {
+    background-color: var(--secondary-background) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--primary-background) !important;
+}
+
+input {
+    background-color: var(--forground-light);
+}
+
+select, .form-control {
+    background-color: var(--forground-light);
+    color: black;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: black;
+}
+
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
+    color: black;
+}
+
+pre {
+    background-color: var(--forground-light) !important;
+}
+
+textarea {
+    background-color: var(--forground-light);
+}
+
+div.details-control.shown {
+    transform: rotate(90deg);
+}
+
+.block {
+    background-color: var(--secondary-background);
+    margin: 40px auto;
+    min-width: 850px;
+    max-width: 1300px;
+    box-shadow:20px 20px 50px 15px var(--text-color);
+}
+
+.label {
+    font-weight: bold;
+    fill: var(--text-color);
+}
+
+.tooltip-inner {
+    max-width: 500px;
+}
+
+.navbar-default {
+    background-color: var(--secondary-background);
+    border: unset;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: var(--text-color);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 28px;
+    background: -webkit-linear-gradient(#000004, #2c115f, #721f81, #b73779, #f1605d, #feb078, #fcfdbf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: Chalkduster;
+}
+
+.navbar {
+    border-radius: 0px;
+}
+
+.dropdown-menu {
+    background-color: var(--forground-light);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: var(--primary-background);
+}
+
+.select2-container--default .select2-selection--single {
+    background-color: var(--forground-light);
+}
+
+.select2-dropdown {
+    background-color: var(--forground-light);
+}
+
+#id_search_phage {
+    width: 180px;
+}
+
+nav.navbar {
+    box-shadow: 0px 20px 20px 5px var(--text-color);
+}
+
+table.dataTable tbody tr.selected {
+    color: var(--highlight);
+}
+
+svg#chart {
+    background-color: var(--forground-light);
+}
+
+.page-item > a {
+    background-color: var(--forground-light) !important;
+     border: unset !important;
+}
+
+.page-item.disabled > a {
+    background-color: var(--primary-background) !important;
+    color: var(--forground-light);
+}
+
+.help-block {
+    color: var(--forground-light);
+}
+
+.has-error .help-block,
+.has-error .control-label,
+.has-error .radio,
+.has-error .checkbox,
+.has-error .radio-inline,
+.has-error .checkbox-inline,
+.has-error.radio label,
+.has-error.checkbox label,
+.has-error.radio-inline label,
+.has-error.checkbox-inline label {
+    color: #ff0500;
+}
+
+td.review-flag {
+    background-color: #bf7c58;
+    color: var(--forground-light);
+}
+
+td.green-flag {
+    background-color: darkgreen;
+    color: var(--forground-light);
+}
+
+td.yellow-flag {
+    background-color: #9b9e00;
+    color: var(--forground-light);
+}
+
+td.red-flag {
+    background-color: darkred;
+    color: var(--forground-light);
+}
+
+td.endo-flag {
+    background-color: darkblue;
+    color: var(--forground-light);
+}

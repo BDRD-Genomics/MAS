@@ -1,0 +1,30 @@
+{% load static %}
+{% load custom_template_tags_filters %}
+
+
+<table id="history-table" class="table table-hover table-striped search" width="100%">
+    <thead style="font-weight: bold">
+       <tr>
+           <td>Date</td>
+           <td>Changed By</td>
+           <td>Annotation</td>
+           <td>Public Note</td>
+           <td>Private Note</td>
+           <td>Flag</td>
+           <td>Assigned to</td>
+       </tr>
+    </thead>
+    <tbody>
+         {% for annotation in history %}
+            <tr>
+                <td>{{ annotation.history_date.date }}</td>
+                <td>{{ annotation.history_user }}</td>
+                <td>{{ annotation.annotation }}</td>
+                <td>{{ annotation.public_notes }}</td>
+                <td>{{ annotation.private_notes }}</td>
+                <td>{{ annotation.get_flag_display }}</td>
+                <td>{{ annotation.assigned_to }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

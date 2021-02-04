@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Confirm Delete</title>
+{% endblock %}
+
+{% block body %}
+    <div class="block">
+        <form action="{% url 'genome:confirm_phage_delete' %}" method="post">
+        <h1>Confirm Annotations to Delete</h1>
+            {% csrf_token %}
+            {{ annotations_to_check_form.management_form }}
+
+            {% if annotations_to_check_form|length >= 1 %}
+                <table id="table" class="table table-hover table-striped" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Delete Annotation</th>
+                            <th>Annotation</th>
+                            <th>Amino Acid Sequence</th>
+                            <th>Public Notes</th>
+                            <th>Private Notes</th>
+                            <th>Flag</th>
+                        </tr>
+                    <input type="checkbox" id="select-all"><p><strong>Select All</strong></p>
+                    </thead>
+                    <tbody>
+                        {% for annotation_form in annotations_to_check_form %}
+                            <tr>
+                                <td>{{ annotation_form.confirm_delete }} {{ annotation_form.id }}</td>
+                                <td>{{ annotation_form.instance.annotation }}</td>
+                                <td>{{ annotation_form.instance.sequence|length }}</td>
+                                <td>{{ annotation_form.instance.public_notes }}</td>
+                                <td>{{ annotation_form.instance.private_notes }}</td>
+                                <td>{{ annotation_form.instance.get_flag_display }}</td>
+                            </tr>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+            <button class="btn btn-success button" type="submit">Confirm Delete</button>
+            <div class="hidden">
+                {{ genome_form }}
+            </div>
+            <div class="hidden">
+                {{ annotations_to_delete_form }}
+            </div>
+        </form>
+        <br>
+        <div>
+            <p><strong>Number of Genomes being deleted: </strong>{{ total_genomes }}</p>
+            <p><strong>Number of Features being deleted: </strong>{{ total_features }}</p>
+            <p><strong>Number of Annotations automatically being deleted: </strong>{{ anno_auto_delete }}</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="application/javascript" src="{% static "genome/genome.js" %}" ></script>
+    <script type="application/javascript" src="{% static "genome/annotation_table.js" %}" ></script>
+{% endblock %}

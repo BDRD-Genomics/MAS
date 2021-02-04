@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{%  static "genome/upload_phage.css" %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Upload Phage</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block">
+        <div id="upload-form-spacer">
+            <h1> Upload Phage</h1>
+            <form name="Form" id="form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if upload_form.errors %}
+                    {{ upload_form.errors }}
+                {% endif %}
+                    <p>Name: {{ upload_form.name }}</p>
+                {% if upload_form.errors.name.data.0.code == 1 %}
+                    <p>Continue with this name?: {{ upload_form.checkbox }}</p>
+                {% endif %}
+                    <p>Genome fasta file: {{ upload_form.upload }}</p>
+
+                    <div id="cp">
+                        <p>Re-orient genome to start from terminase?: {{ upload_form.circularly_permuted }}</p>
+                    </div>
+                    <br>
+
+                    <div id="terminal_repeat">
+                        <p>Direct Terminal Repeat (DTR) Length, Enter 0 if no Terminal Repeat: {{ upload_form.terminal_repeat }}</p>
+                    </div>
+                    <br>
+                    <p>Assign to: {{ upload_form.assign_to }}</p>
+                    <br>
+
+                <button class="btn btn-success button" type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="loader" style="display: none" id="load"></div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="application/javascript" src="{% static "genome/upload_phage.js" %}" ></script>
+{% endblock %}

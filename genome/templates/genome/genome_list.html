@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Organism List</title>
+{% endblock %}
+
+{% block body %}
+    <div class="block">
+        <h1>Genomes</h1>
+        {% include 'genome/genome_list_table.html' %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="application/javascript" src="{% static "genome/genome.js" %}" ></script>
+{% endblock %}

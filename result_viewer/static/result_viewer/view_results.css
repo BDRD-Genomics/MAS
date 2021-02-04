@@ -1,0 +1,138 @@
+#form-div {
+    text-align: center;
+}
+
+#svg-length {
+    margin-left: 10px;
+    float: left;
+}
+
+#result-selector {
+    text-align: center;
+}
+
+.button-group {
+    display: inline-block;
+    margin: 0 10px 10px 10px;
+}
+
+#error-div {
+    margin: 10px auto;
+    max-width: 500px;
+    text-align: center;
+    background-color: red;
+}
+
+#tool-selection-buttons {
+    margin-top: 10px;
+}
+
+#nav {
+    text-align: center;
+    padding-top: 10px;
+}
+
+.pagination {
+    margin-top: 10px;
+}
+
+#bulk-run {
+    text-align: center;
+    padding: 10px;
+}
+
+#form-checkbox {
+    margin-left: 10px;
+}
+
+.disabled {
+    pointer-events: none;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 5fr 1fr 5fr;
+    grid-template-rows: 30px 80px;
+    min-width: 850px;
+    max-width: 1300px;
+    margin: auto;
+    padding: 10px;
+    grid-gap: 8px;
+}
+
+.form-grid > label {
+    justify-self: end;
+    align-self: center;
+}
+
+/*.page-item > a {*/
+/*    background-color: var(--forground-light) !important;*/
+/*    border: unset !important;*/
+/*}*/
+
+
+/*.page-item.disabled > a {*/
+/*    background-color: var(--primary-background) !important;*/
+/*    color: var(--forground-light);*/
+/*}*/
+
+#viz {
+    margin: 40px auto;
+}
+
+#info {
+    margin: 40px auto;
+    min-width: 850px;
+    max-width: 1300px;
+}
+
+#tdiv {
+    padding: 20px;
+}
+
+#alignment {
+    margin: auto;
+    display: block;
+}
+
+#queryRect {
+    fill: darkred;
+}
+
+.mouse_tick {
+    stroke: var(--highlight);
+    fill: var(--highlight);
+}
+
+.key-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#search-run-date-div {
+    float: right;
+    margin-right: 10px;
+    margin-top: 7px;
+}
+
+#run-search-button {
+    float: right;
+    margin-right: 10px;
+}
+
+#search_running {
+    margin-right: 4px;
+}
+
+#run-search-button:disabled > span.glyphicon {
+    -webkit-animation: spin 1500ms infinite linear;
+}
+
+@-webkit-keyframes spin {
+    0% {
+       -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+    }
+}

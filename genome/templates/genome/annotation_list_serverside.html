@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Annotation List</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block wide-block">
+        <h1>Annotations</h1>
+        {% include 'genome/annotation_list_table_serverside.html' %}
+    </div>
+{% endblock %}
+
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script>
+        var GENOME_ID = NaN;
+        var GET_AA_SEQ_URL = "{% url 'genome:get_aa_sequence' %}";
+        var GET_ANNO_DATA_URL = "{% url 'get_annotation_data' %}";
+    </script>
+    <script type="text/javascript" src="{% static 'genome/annotation_list_serverside.js' %}"></script>
+{% endblock %}

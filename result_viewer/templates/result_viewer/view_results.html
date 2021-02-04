@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <!-- view_results CSS -->
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{%  static "result_viewer/view_results.css" %}">
+{% endblock %}
+
+{% block head %}
+    <title>MAS</title>
+    <!-- Dump context to json -->
+    {{ hhsearch_alignments|json_script:"hhsearch_alignment_data" }}
+    {{ blastp_alignments|json_script:"blastp_alignment_data" }}
+    {{ rpsblast_alignments|json_script:"rpsblast_alignment_data" }}
+    {{ form.initial|json_script:"current_annotation_info" }}
+    {{ feature_data|json_script:"feature_data" }}
+{% endblock %}
+
+
+{% block body %}
+
+{#   **********   NAVIGATOR   **********  #}
+    <div class="block" id="nav">
+        {{ navigator.description }}
+        {% if navigator.type == "GenomeNavigator" %}
+            <a href="{% url 'genome:phage_detail' pk=genome_id %}">
+{#                <div class="glyphicon glyphicon-hand-right"></div>#}
+                <i class="fa fa-share"></i>
+            </a>
+        {% endif %}
+        <nav>
+            <ul class="pagination" id="paginator">
+                {% for p in navigator.buttons %}
+                    <li class="page-item {% if p.disabled %}disabled{% endif %}">
+                        <a class="page-link" href="{{ p.href }}">{{ p.text }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% if feature_data %}
+            <svg id="chart" class="chart" width="99%" height="260"></svg>
+        {% else %}
+            This genome contains too many features to display visualization.
+        {% endif %}
+    </div>
+
+{#   **********   Genome Searcher   **********  #}
+    {% if navigator.type == "GenomeNavigator" %}
+    <div class="block" id="bulk-run">
+        <div class="db-selection-row" id="blastp-dbs">
+            Blastp:
+            {% for db in blastp_alignments %}
+                <label for={{ db|add:"-checkbox" }}>{{ db }}</label>
+                <input type="checkbox" id={{ db|add:"-checkbox" }} checked="">
+            {% endfor %}
+        </div>
+        <div class="db-selection-row" id="rpsblast-dbs">
+            RPSBlast:
+            {% for db in rpsblast_alignments %}
+                <label for={{ db|add:"-checkbox" }}>{{ db }}</label>
+                <input type="checkbox" id={{ db|add:"-checkbox" }} checked="">
+            {% endfor %}
+        </div>
+        <div class="db-selection-row" id="hhsearch-dbs">
+            HHSearch:
+            {% for db in hhsearch_alignments %}
+                <label for={{ db|add:"-checkbox" }}>{{ db }}</label>
+                <input type="checkbox" id={{ db|add:"-checkbox" }} checked="">
+            {% endfor %}
+        </div>
+        <div class="db-selection-row">
+            <label for="rerun">Rerun previously completed?</label>
+            <input type="checkbox" name="rerun" id="rerun">
+        </div>
+        <button type="button" class="btn btn-primary" id="submit-phage">Run for all proteins in genome</button>
+    </div>
+    {% endif %}
+
+{#   **********   FORM   **********  #}
+    <div class="block">
+        <form  method="post">
+            {% csrf_token %}
+            <div id="form-div" class="form-grid">
+                {{ form.annotation.label_tag }}
+                {{ form.annotation }}
+                {{ form.flag.label_tag }}
+                {{ form.flag }}
+                {{ form.public_notes.label_tag }}
+                {{ form.public_notes }}
+                {{ form.private_notes.label_tag }}
+                {{ form.private_notes }}
+                {{ form.assigned_to.label_tag }}
+                {{ form.assigned_to }}
+            </div>
+            <div id="error-div">
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                    {{ field.errors }}
+                {% endfor %}
+            </div>
+            {% if perms.genome.change_annotation %}
+                <div role="toolbar" style="justify-content: space-between; display: flex; padding: 0 10px 10px 10px; align-items: flex-end;">
+                    <div role="group">
+                        <button type="submit" class="btn btn-primary" id="submit-form" disabled>Submit</button>
+                        <button type="button" class="btn btn-default" id="reset-form" disabled>Reset</button>
+                        <span id="form-checkbox">
+                            {{ form.go_to_next.label_tag }}
+                            {{ form.go_to_next }}
+                        </span>
+                    </div>
+                    <div role="group">
+                        <span>
+                            <button type="button" class="btn btn-default" id="show-history">
+                                <i class="fa fa-history fa-lg"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+{#   **********   HISTORY   **********  #}
+    <div id='history-block' class="block" style="padding: 10px 20px 10px 20px; display: none" >
+        {% include 'genome/annotation_history_table.html' %}
+    </div>
+
+    {% if form.initial.flag != 8 and form.initial.flag != 9 %}
+{#   **********   VISUALIZATION   **********  #}
+    <div id="viz" class="block">
+        <div id="result-selector">
+            <div class="button-group btn-group-toggle" data-toggle="buttons" role="group" id="tool-selection-buttons">
+                <button type="button" class="btn btn-default" id="blastp_button">Blastp</button>
+                <button type="button" class="btn btn-default" id="rpsblast_button">RPSBlast</button>
+                <button type="button" class="btn btn-default" id="hhsearch_button">HHSearch</button>
+            </div>
+            <div id="database-button-div">
+                <div
+                    class="button-group btn-group-toggle"
+                    data-toggle="buttons"
+                    role="group"
+                    id="blastp-db-selection-buttons"
+                    {% if tool != "blastp" %}style="display: none"{% endif %}
+                >
+                    {% for db in blastp_alignments %}
+                        <button
+                            type="button"
+                            class="btn btn-default db-button"
+                            id={{ "blastp-"|add:db|add:"-button" }}
+                            {% if database == db %}disabled="disabled"{% endif %}
+                        >{{ db }}</button>
+                    {% endfor %}
+                </div>
+                <div
+                    class="button-group btn-group-toggle"
+                    data-toggle="buttons"
+                    role="group"
+                    id="hhsearch-db-selection-buttons"
+                    {% if tool != "hhsearch" %}style="display: none"{% endif %}
+                >
+                    {% for db in hhsearch_alignments %}
+                        <button
+                            type="button"
+                            class="btn btn-default db-button"
+                            id={{ "hhsearch-"|add:db|add:"-button" }}
+                            {% if database == db %}disabled="disabled"{% endif %}
+                        >{{ db }}</button>
+                    {% endfor %}
+                </div>
+                <div
+                    class="button-group btn-group-toggle"
+                    data-toggle="buttons"
+                    role="group"
+                    id="rpsblast-db-selection-buttons"
+                    {% if tool != "rpsblast" %}style="display: none"{% endif %}
+                >
+                    {% for db in rpsblast_alignments %}
+                        <button
+                            type="button"
+                            class="btn btn-default db-button"
+                            id={{ "rpsblast-"|add:db|add:"-button" }}
+                            {% if database == db %}disabled="disabled"{% endif %}
+                        >{{ db }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+            <div class="dataTables_length" id="svg-length">
+                <label>
+                    Show
+                    <select id="svg-row-selector">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="All">All</option>
+                    </select>
+                     rows
+                </label>
+            </div>
+            <button type="button" class="btn btn-primary" id="run-search-button">
+                <span class="glyphicon" id="search_glyph"></span>
+                <span id="run-button-txt">Run<span/>
+            </button>
+            <div id="search-run-date-div">
+                <p id="search-run-date"></p>
+            </div>
+        <svg id="alignment"></svg>
+    </div>
+
+{#   **********   TABLES   **********  #}
+    <div id="info" class="block">
+        <div id="tdiv">
+            {% for db, alignment_data in hhsearch_alignments.items %}
+                <div class="table-div" id={{ "hhsearch-table-div-"|add:db }} {% if tool != "hhsearch" or database != db %}hidden{% endif %}>
+                    <table id={{ "hhsearch-table-"|add:db }} class="table table-hover table-striped">
+                        <thead>
+                            <th></th>
+                            <th>Accession</th>
+                            <th>Name</th>
+                            <th>PDB Chain Name</th>
+                            <th>Probability</th>
+                            <th>E-Value</th>
+                            <th>Score</th>
+                            <th>Target Length</th>
+                        </thead>
+                        <tbody>
+                            {% for alignment in alignment_data.alignments %}
+                                <tr id="{{ alignment.hit_id }}">
+                                    <td class="details-cell" align="center">
+                                        <div class="glyphicon glyphicon-menu-right details-control"></div>
+                                    </td>
+                                    <td>
+                                        {% if db == "pdb" %}<a href="https://www.rcsb.org/structure/{{ alignment.hit_id|slice:":-2" }}" target="_blank">{% endif %}
+                                        {{ alignment.hit_id }}
+                                        {% if db == "pdb" %}</a>{% endif %}
+                                    </td>
+                                    <td>{{ alignment.hit_description }}</td>
+                                    <td>{{ alignment.pdb_chain_name }}</td>
+                                    <td>{{ alignment.prob }}</td>
+                                    <td>{{ alignment.lowest_evalue }}</td>
+                                    <td>{{ alignment.top_score }}</td>
+                                    <td>{{ alignment.hit_seq_len }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+            {% for db, alignment_data in blastp_alignments.items %}
+                <div class="table-div" id={{ "blastp-table-div-"|add:db }} {% if tool != "blastp" or database != db %}hidden{% endif %}>
+                    <table id={{ "blastp-table-"|add:db }} class="table table-hover table-striped">
+                        <thead>
+                            <th></th>
+                            <th>Accession</th>
+                            <th>Description</th>
+                            <th>Best Bit Score</th>
+                            <th>Sum of Bit Scores</th>
+                            <th>Best E-Value</th>
+                            <th>Subject Length</th>
+                        </thead>
+                        <tbody>
+                            {% for alignment in alignment_data.alignments %}
+                                <tr id="{{ alignment.hit_id }}">
+                                    <td class="details-cell" align="center">
+                                        <div class="glyphicon glyphicon-menu-right details-control"></div>
+                                    </td>
+                                    {% if db == 'internal' %}
+                                        <td><a href="{% url 'accession-redirect' accession=alignment.hit_id %}">{{ alignment.hit_id }}</a></td>
+                                    {% elif db == 'swissprot' %}
+                                        <td>
+                                            <a href="https://www.uniprot.org/uniprot/{{ alignment.hit_id }}" target="_blank">
+                                                {{ alignment.hit_id }}
+                                            </a>
+                                        </td>
+                                    {% elif db == "nr" %}
+                                        <td>
+                                            <a href="https://www.ncbi.nlm.nih.gov/protein/{{ alignment.hit_id }}" target="_blank">
+                                                {{ alignment.hit_id }}
+                                            </a>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ alignment.hit_id }}</td>
+                                    {% endif %}
+                                    <td>{{ alignment.hit_description }}</td>
+                                    <td>{{ alignment.top_score }}</td>
+                                    <td>{{ alignment.sum_score }}</td>
+                                    <td>{{ alignment.lowest_evalue|stringformat:"g" }}</td>
+                                    <td>{{ alignment.hit_seq_len }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+            {% for db, alignment_data in rpsblast_alignments.items %}
+                <div class="table-div" id={{ "rpsblast-table-div-"|add:db }} {% if tool != "rpsblast" or database != db %}hidden{% endif %}>
+                    <table id={{ "rpsblast-table-"|add:db }} class="table table-hover table-striped">
+                        <thead>
+                            <th></th>
+                            <th>Accession</th>
+                            <th>Description</th>
+                            <th>Best Bit Score</th>
+                            <th>Sum of Bit Scores</th>
+                            <th>Best E-Value</th>
+                            <th>Subject Length</th>
+                        </thead>
+                        <tbody>
+                            {% for alignment in alignment_data.alignments %}
+                                <tr id="{{ alignment.hit_id }}">
+                                    <td class="details-cell" align="center">
+                                        <div class="glyphicon glyphicon-menu-right details-control"></div>
+                                    </td>
+                                    <td>
+                                        {% if db == "cdd" %}<a href="https://www.ncbi.nlm.nih.gov/Structure/cdd/cddsrv.cgi?uid={{ alignment.hit_id }}" target="_blank">{% endif %}
+                                        {{ alignment.hit_id }}
+                                        {% if db == "cdd" %}</a>{% endif %}</td>
+                                    <td>{{ alignment.hit_description }}</td>
+                                    <td>{{ alignment.top_score }}</td>
+                                    <td>{{ alignment.sum_score }}</td>
+                                    <td>{{ alignment.lowest_evalue|stringformat:"g" }}</td>
+                                    <td>{{ alignment.hit_seq_len }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    {% endif %}
+{% endblock %}
+
+{% block javascript %}
+    <!-- view_results JS -->
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="application/javascript" src="{% static "js/d3.min.js" %}" ></script>
+    <script>
+        {% if genome_length %}
+            var GENOME_LENGTH = {{ genome_length }};
+        {% endif %}
+        var QUERY_LEN = {{ query_len|safe }};
+        var NAV_ARG = "{{ navigator.nav_arg|safe }}";
+        var ACCESSION = "{{ accession|safe }}";
+        var TOOL = "{{ tool|safe }}";
+        var DATABASE = "{{ database|safe }}";
+        var RUN_SEARCH_URL = "{{ run_search_url|safe }}";
+        var RUN_SEARCH_FOR_PHAGE_URL = "{{ run_search_for_phage_url|safe }}";
+        var blastp_alignment_data = JSON.parse(document.getElementById("blastp_alignment_data").textContent);
+        var hhsearch_alignment_data = JSON.parse(document.getElementById("hhsearch_alignment_data").textContent);
+        var rpsblast_alignment_data = JSON.parse(document.getElementById("rpsblast_alignment_data").textContent);
+    </script>
+    <script type="application/javascript" src="{% static "result_viewer/view_results.js" %}" ></script>
+    <script type="application/javascript" src="{% static "result_viewer/genome_visualization.js" %}" ></script>
+{% endblock %}

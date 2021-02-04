@@ -1,0 +1,14 @@
+{% load static %}
+{% load custom_template_tags_filters %}
+
+<link rel="stylesheet" href="{% static 'js/genome.css' %}">
+<div style="font-family: monospace">
+{% if feature %}
+    >{{ feature }}<br>
+    {{ feature_sequence|add_sequence_breaks|linebreaks }}
+{% else %}
+    <p>No feature sequence information to show.</p>
+{% endif %}
+</div>
+
+

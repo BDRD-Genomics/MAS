@@ -1,0 +1,23 @@
+
+#upload-form-spacer {
+    padding: 10px 0px 30px 40px
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.loader{
+    border: 16px solid #f0f0f0;
+    border-top: 16px solid #ff0100;
+    border-bottom: 16px solid #ff0100;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% {transform: rotate(0deg);}
+    100% {transform: rotate(360deg);}
+}

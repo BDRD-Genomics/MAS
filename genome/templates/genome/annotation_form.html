@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+<!-- This file relies on kit_form.js -->
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Add Annotation</title>
+{% endblock %}
+
+{% load crispy_forms_tags %}
+
+{% block body %}
+    <h1>Add new Annotation</h1>
+    <form class="form-horizontal" method="post">
+    {% csrf_token %}
+
+    {% crispy annotation_form %}
+
+    <fieldset class="controls">
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </fieldset>
+    </form>
+{% endblock %}
+
+{% block javascript %}
+    {% include 'genome/annotation_form.js' %}
+{% endblock %}

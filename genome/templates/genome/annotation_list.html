@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Annotation List</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block">
+        <h1>
+            Annotations
+            {% if flag %}
+                which have flag: {{ flag }}
+            {% endif %}
+        </h1>
+        <h4><a href="{% url 'genome:my_annotations' %}">View My Annotations</a></h4>
+
+        {% if large_annotation_count %}
+            <h2 style="color:red">There are <strong>{{ large_annotation_count }}</strong> annotations and this is too many to display! Only showing {{ maximum_display_limit }} annotations.</h2>
+
+        {% endif %}
+        {% include 'genome/annotation_list_table.html' %}
+    </div>
+{% endblock %}
+
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'genome/genome.js' %}"></script>
+{#    <script type="text/javascript" src="{% static 'genome/annotation_table.js' %}"></script>#}
+{% endblock %}

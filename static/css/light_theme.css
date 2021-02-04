@@ -1,0 +1,176 @@
+:root {
+    --primary-background: #e5e5e5;
+    --secondary-background: #ffffff;
+    --forground-light: #ffffff;
+    --highlight: #fcfdbf;
+}
+
+body {
+    background-color: var(--primary-background);
+}
+
+a {
+    color: #2394c1;
+}
+
+#page-container {
+    position: relative;
+    min-height: 100vh;
+}
+
+#all-except-footer {
+    padding-bottom: 25px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 25px;
+}
+
+table.dataTable td {
+    color: #000000;
+}
+
+table.dataTable tbody tr {
+    background-color: var(--secondary-background) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--primary-background) !important;
+}
+
+input {
+    background-color: var(--forground-light);
+}
+
+select {
+    background-color: var(--forground-light);
+}
+
+pre {
+    background-color: var(--forground-light) !important;
+}
+
+textarea {
+    background-color: var(--forground-light);
+}
+
+div.details-control.shown {
+    transform: rotate(90deg);
+}
+
+.block {
+    background-color: var(--secondary-background);
+    margin: 40px auto;
+    min-width: 850px;
+    max-width: 1300px;
+    box-shadow:20px 20px 50px 15px grey;
+}
+
+.label {
+    font-weight: bold;
+    fill: #333;
+}
+
+.tooltip-inner {
+    max-width: 500px;
+}
+
+.navbar-default {
+    background-color: var(--secondary-background);
+    border: unset;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: #000000;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 28px;
+    background: -webkit-linear-gradient(#000004, #2c115f, #721f81, #b73779, #f1605d, #feb078, #fcfdbf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: Chalkduster;
+}
+
+.navbar {
+    border-radius: 0px;
+}
+
+.dropdown-menu {
+    background-color: var(--forground-light);
+}
+
+.select2-container--default .select2-selection--single {
+    background-color: var(--forground-light);
+}
+
+.select2-dropdown {
+    background-color: var(--forground-light);
+}
+
+#id_search_phage {
+    width: 180px;
+}
+
+table.dataTable tbody tr.selected {
+    color: var(--highlight);
+}
+
+nav.navbar {
+    box-shadow: 0px 20px 20px 5px grey;
+}
+
+svg {
+    background-color: var(--primary-background);
+    border-style: solid;
+    border-width: 1px;
+}
+
+div#viz {
+    padding-bottom: 8px;
+}
+
+.page-item > a {
+    /*background-color: var(--forground-light) !important;*/
+    color: #fff !important;
+    background-color: #337ab7 !important;
+    border-color: #2e6da4 !important;
+}
+
+.page-item.disabled > a {
+    opacity: .65;
+    cursor: not-allowed;
+}
+
+.btn-default {
+    background-color: var(--primary-background);
+}
+
+td.review-flag {
+    background-color: #c4937a;
+    color: var(--forground-light);
+}
+
+td.green-flag {
+    background-color: #62d062;
+    color: var(--forground-light);
+}
+
+td.yellow-flag {
+    background-color: #dde051;
+    color: var(--forground-light);
+}
+
+td.red-flag {
+    background-color: #d65353;
+    color: var(--forground-light);
+}
+
+td.endo-flag {
+    background-color: #6060de;
+    color: var(--forground-light);
+}

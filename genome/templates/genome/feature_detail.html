@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Feature Detail</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block">
+        <h1> Feature Details: {{ feature }}</h1>
+            <table class="table-condensed">
+                <tr><td><b>ID: </b></td><td>{{ feature.id }}</td></tr>
+                <tr><td><b>Genome Name: </b></td><td><a href="{% url 'genome:phage_detail' feature.genome.id %}">{{ feature.genome }}</a></td></tr>
+                <tr><td><b>Start: </b></td><td>{{ feature.start }}</td></tr>
+                <tr><td><b>Stop: </b></td><td>{{ feature.stop }}</td></tr>
+                <tr><td><b>Strand: </b></td><td>{{ feature.strand }}</td></tr>
+                <tr><td><b>Feature Type: </b></td><td>{{ feature.type }}</td></tr>
+                <tr><td><b>Annotation: </b></td><td><a href="{% url 'genome:annotation_detail' feature.annotation.id %}">{{ feature.annotation }}</a></td></tr>
+            </table>
+    </div>
+{% endblock %}
+
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'DataTables/datatables.min.js' %}"></script>
+    <script type="application/javascript" src="{% static "genome/genome.js" %}" ></script>
+    <script type="application/javascript" src="{% static "genome/aa_sequence.js" %}" ></script>
+{% endblock %}

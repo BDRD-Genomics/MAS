@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'genome/genome.css' %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Upload Annotation</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block">
+        <form name="Form" id="form" method="post" enctype="multipart/form-data">
+            <h1> Upload Annotations</h1>
+            {% csrf_token %}
+
+            {% if annotation_upload_form.errors %}
+                {{ annotation_upload_form.errors }}
+                <p>Upload: {{ annotation_upload_form.upload }}</p>
+            {% else %}
+                <p>Upload: {{ annotation_upload_form.upload }}</p>
+            {% endif %}
+            <button class="btn btn-success button" type="submit">Submit</button>
+        </form>
+        <br>
+        <br>
+        <p>This feature is provided to allow the user to upload annotations which were determined outside of MAS.</p>
+        <h4><a href="{% url 'genome:download_excel_template' %}">Download Excel Template</a></h4>
+        <h4>Required Columns*:
+            <ul>
+                <li>Manual_Annotation</li>
+                <li>Public_Notes</li>
+                <li>Internal_Notes</li>
+                <li>Flag</li>
+                <li>Protein_Sequence</li>
+            </ul>
+            Flag Options*:
+            <ul>
+                <li>GREEN</li>
+                <li>YELLOW</li>
+                <li>RED</li>
+                <li>REVIEW NAME</li>
+                <li>ENDOLYSIN</li>
+                <li>tRNA</li>
+                <li>TERMINAL REPEAT</li>
+            </ul>
+        </h4>
+        <i>*These are no longer case sensitive.</i>
+    </div>
+
+{% endblock %}

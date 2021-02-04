@@ -1,0 +1,53 @@
+
+{% if genome_info %}
+    {% load static %}
+
+    <table id="genome-table" class="table table-hover table-striped" width="100%">
+        <thead>
+        <tr>
+            <th>Genome Name</th>
+            <th>Organism</th>
+            <th>Genome Length</th>
+            <th># CDS</th>
+            <th># CDS Unannotated</th>
+            <th># Needs Review</th>
+            <th># Green Flag</th>
+            <th># Yellow Flag</th>
+            <th># Red Flag</th>
+            <th># Endolysin</th>
+            <th># tRNA</th>
+            <th>Download Sequence</th>
+            <th>Nav</th>
+
+        </tr>
+        </thead>
+        <tbody>
+    {% for genome in genome_info %}
+        <tr>
+            <td><a href="{% url 'genome:phage_detail' genome.pk %}">{{ genome.genome_name }}</a></td>
+            <td>{{ genome.organism }}</td>
+            <td>{{ genome.genome_length }}</td>
+            <td>{{ genome.cds_count }}</td>
+            <td>{{ genome.unpolished_cds_count }}</td>
+            <td class="review-flag">{{ genome.review_name_cds_count }}</td>
+            <td class="green-flag">{{ genome.green_cds_count }}</td>
+            <td class="yellow-flag">{{ genome.yellow_cds_count }}</td>
+            <td class="red-flag">{{ genome.red_cds_count }}</td>
+            <td class="endo-flag">{{ genome.endolysin_cds_count }}</td>
+            <td>{{ genome.trna_count }}</td>
+            <td>
+                <a href="{% url 'genome:phage_download_fasta' genome.pk %}">download fasta</a>
+            </td>
+            <td>
+                <a href="{% url 'phage-nav-redirect' genome.genome_name %}">
+                    <div class="glyphicon glyphicon-hand-right"></div>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+        <tbody>
+    </table>
+
+{% else %}
+    <p>No genomes are available.</p>
+{% endif %}
