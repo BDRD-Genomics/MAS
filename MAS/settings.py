@@ -112,7 +112,7 @@ TERMINASE_DATABASE = '/home/daemon/MAS/databases/terminase/terminase_db'
 
 GIT_DIR = os.path.join(BASE_DIR, '.git')
 
-CELERY_BROKER_URL = 'mas-message-broker'
+CELERY_BROKER_URL = 'amqp://mas:{password}@mas-message-broker'.format(password=os.getenv('RABBITMQ_DEFAULT_PASS'))
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 

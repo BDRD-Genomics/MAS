@@ -16,8 +16,8 @@ chown -R daemon:daemon /home/daemon/MAS/media
 /home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py createdefaultusers "${ADMIN_USER_PASSWORD}" "${LUIGI_USER_PASSWORD}"
 /home/daemon/miniconda/envs/mas/bin/python /home/daemon/MAS/manage.py updatepdbnamemappings /home/daemon/MAS/pdb_seqres.txt
 
-# Start luigi daemon
-nohup /home/daemon/miniconda/envs/mas/bin/luigid --background &
+# Start luigi daemon from daemon account
+sudo -u daemon nohup /home/daemon/miniconda/envs/mas/bin/luigid --logdir /home/daemon/MAS/luigi_logs --background &
 
 # Start server
 exec httpd -DFOREGROUND "$@"

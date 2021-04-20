@@ -231,7 +231,9 @@ class Upload_Annotation(LoginRequiredMixin, PermissionRequiredMixin, MixinForBas
 
             return render(request, 'genome/confirm_upload_annotation.html', context)
         else:
-            return render(request, self.template_name, {'annotation_upload_form': upload_form})
+            error_context = self.get_context_data()
+            error_context['annotation_upload_form'] = upload_form
+            return render(request, self.template_name, error_context)
 
 
 # used when user needs to check with annotations they want to update
@@ -245,7 +247,7 @@ class Confirm_Upload_Annotation(LoginRequiredMixin, PermissionRequiredMixin, Mix
     login_url = reverse_lazy('login')
 
     def get(self, request):
-        context = {}
+        context = self.get_context_data()
         upload_form = genome_forms.Upload_Annotation(
             data=request.GET
         )

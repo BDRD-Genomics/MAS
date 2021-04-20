@@ -3,6 +3,7 @@ services:
   messagebroker:
     image: rabbitmq:3.8.9
     container_name: mas-message-broker
+    hostname: mas-message-broker
     restart: always
     ports:
       - target: 5672
@@ -11,6 +12,9 @@ services:
         mode: host
     networks:
       - masnet
+    environment:
+      RABBITMQ_DEFAULT_USER: "mas"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
 
   db:
     image: mariadb:10.5
@@ -39,18 +43,19 @@ services:
       context: .
       dockerfile: mas-dockerfile
       args:
-        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
     depends_on:
       - db
       - messagebroker
-    image: mas:1.0
+    image: mas:1.1
     container_name: mas
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      ADMIN_USER_PASSWORD: ${ADMIN_USER_PASSWORD}
-      LUIGI_USER_PASSWORD: ${LUIGI_USER_PASSWORD}
-      DEVELOPER_MODE: ${DEVELOPER_MODE}
-      ALLOWED_HOST: ${ALLOWED_HOST}
+      ADMIN_USER_PASSWORD: "${ADMIN_USER_PASSWORD}"
+      LUIGI_USER_PASSWORD: "${LUIGI_USER_PASSWORD}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
+      DEVELOPER_MODE: "${DEVELOPER_MODE}"
+      ALLOWED_HOST: "${ALLOWED_HOST}"
       LD_PRELOAD: "/home/daemon/miniconda/envs/mas/lib/python3.8/site-packages/libfaketime/vendor/libfaketime/src/libfaketime.so.1"
       DONT_FAKE_MONOTONIC: 1
       FAKETIME_DID_REEXEC: "true"
@@ -69,6 +74,9 @@ services:
         target: /home/daemon/MAS/media
         volume:
           nocopy: true
+      - type: bind
+        source: ./AnnotationToolPipeline/luigi.cfg
+        target: /home/daemon/MAS/AnnotationToolPipeline/luigi.cfg
     networks:
       - masnet
 

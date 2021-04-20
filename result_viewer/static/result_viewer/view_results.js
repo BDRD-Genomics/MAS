@@ -210,7 +210,7 @@ function get_selected_databases(tool) {
     return databases;
 }
 
-d3.select('#submit-phage')
+d3.select('#submit-genome')
     .on('click', function () {
         var d = {
             'genome': NAV_ARG,
@@ -221,11 +221,11 @@ d3.select('#submit-phage')
                 'hhsearch': get_selected_databases('hhsearch')
             }
         };
-        console.log(d);
         var response = $.ajax({
             type: 'POST',
             url: RUN_SEARCH_FOR_PHAGE_URL,
             data: { 'data': JSON.stringify(d) },
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
             dataType: 'json',
             error: function (xhr, status, error) {
                 console.log(xhr.responseText);
@@ -239,9 +239,9 @@ $('body').keypress(function (e) {
         $("#id_annotation").val('hypothetical protein');
         $("#id_flag").val(0);
         if (is_form_data_changed()) {
-            d3.selectAll('.form-buttons > button').attr('disabled', null);
+            d3.selectAll('#submit-form, #reset-form').attr('disabled', null);
         } else {
-            d3.selectAll('.form-buttons > button').attr('disabled', 'disabled');
+            d3.selectAll('#submit-form, #reset-form').attr('disabled', 'disabled');
         }
     }
 });

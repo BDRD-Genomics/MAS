@@ -135,7 +135,7 @@ nav.navbar {
     box-shadow: 0px 20px 20px 5px var(--text-color);
 }
 
-table.dataTable tbody tr.selected {
+table.dataTable tbody tr.selected > td {
     color: var(--highlight);
 }
 

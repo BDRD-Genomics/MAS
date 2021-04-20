@@ -2,7 +2,7 @@
     --primary-background: #e5e5e5;
     --secondary-background: #ffffff;
     --forground-light: #ffffff;
-    --highlight: #fcfdbf;
+    --highlight: #4c25b8;
 }
 
 body {
@@ -116,7 +116,7 @@ div.details-control.shown {
     width: 180px;
 }
 
-table.dataTable tbody tr.selected {
+table.dataTable tbody tr.selected > td {
     color: var(--highlight);
 }
 

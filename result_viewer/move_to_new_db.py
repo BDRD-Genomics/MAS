@@ -1,14 +1,21 @@
 from result_viewer.models import *
+from genome.models import *
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.files.base import ContentFile
-from django.db.utils import IntegrityError
-
-import io
-from datetime import datetime
+from django.contrib.auth.models import User
 
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
+from simple_history.utils import get_history_manager_for_model
+
+
+def move_users():
+    print('Starting moving users.')
+    for user in User.objects.using('old-mas').iterator():
+        user.id = None
+        if len(User.objects.using('default').filter(username=user.username)) == 0:
+            user.save(using='default')
+    print('Done moving users.')
 
 
 def move_annotations():
@@ -18,162 +25,169 @@ def move_annotations():
     3) Move features associated with phage
     4) Move search results
     '''
-    for amd_annotation in Annotations.objects.iterator():
-
-        if amd_annotation.annotation.startswith('tRNA-') and amd_annotation.flag == 4:
-            mas_flag = 8
-        elif amd_annotation.gbk_notes.startswith('Direct terminal repeat.') and amd_annotation.flag == 4:
-            mas_flag = 9
+    print('Starting moving annotations.')
+    histories = []
+    annos = []
+    useqs = set()
+    for annotation in Annotation.objects.using('old-mas').all():
+        if annotation.sequence in useqs:
+            continue
         else:
-            mas_flag = amd_annotation.flag
+            useqs.add(annotation.sequence)
 
-        try:
-            mas_annotation = Annotation(
-                sequence=amd_annotation.sequence,
-                annotation=amd_annotation.annotation,
-                public_notes=amd_annotation.gbk_notes,
-                private_notes=amd_annotation.private_notes,
-                flag=mas_flag
-            )
-            mas_annotation.save()
+        for history in annotation.history.using('old-mas').iterator():
+            history.history_id = None
 
-        except IntegrityError:
-            Annotation.objects.filter(sequence=amd_annotation.sequence).update(
-                annotation=amd_annotation.annotation,
-                public_notes=amd_annotation.gbk_notes,
-                private_notes=amd_annotation.private_notes,
-                flag=mas_flag
-            )
+            if history.assigned_to_id:
+                assigned_to = User.objects.using('old-mas').get(id=history.assigned_to_id)
+                history.assigned_to = User.objects.get(username=assigned_to.username)
 
+            if history.history_user_id:
+                history_user = User.objects.using('old-mas').get(id=history.history_user_id)
+                history.history_user = User.objects.get(username=history_user.username)
+            # history.save(using='default')
+            histories.append(history)
 
-phages = []
-phage_features = []  # each element a list of features which belong to phage at same index
-new_annotations = []
+        annotation.id = None
+        if annotation.assigned_to_id:
+            assigned_to = User.objects.using('old-mas').get(id=annotation.assigned_to_id)
+            annotation.assigned_to = User.objects.get(username=assigned_to.username)
+        annos.append(annotation)
+        # annotation.save(using='default')
+
+    Annotation.objects.using('default').bulk_create(annos, batch_size=1000)
+    get_history_manager_for_model(Annotation).using('default').bulk_create(histories, batch_size=1000)
+    print('Done moving Annotations.')
+
 
 def move_phage_and_features():
-    phages = []
-    phage_features = []  # each element a list of features which belong to phage at same index
+    print('Starting moving phages and features.')
+    features = []
     new_annotations = []
 
-    try:
-        for amd_phage in Phages.objects.iterator():
-            mas_phage = Genome(
-                phage_name=amd_phage.name,
-                genome=amd_phage.genome
-            )
-            phages.append(mas_phage)
-            mas_phage.save()
+    i = 1
+    for phage in Phage.objects.using('old-mas').all():
+        print('Starting phage {}'.format(i))
+        i += 1
 
-            amd_features = Features.objects.filter(phage_name=amd_phage.name)
+        genome = Genome(
+            genome_name=phage.phage_name,
+            genome_sequence=phage.genome
+        )
+        genome.save(using='default')
 
-            features = []  # The current phage's features (to be appended to phage_features list)
-            for amd_feature in amd_features.iterator():
-                # Find annotation associated with feature
-                if amd_feature.type == 'CDS':
-                    sequence = get_protein_sequence(
-                        amd_feature.start,
-                        amd_feature.end,
-                        amd_feature.strand,
-                        Seq(amd_phage.genome, IUPAC.unambiguous_dna)
-                    )
+        phage_features = old_Feature.objects.using('old-mas').filter(phage__phage_name=phage.phage_name)
 
-                elif amd_feature.type == 'repeat_region':
-                    sequence = get_dna_sequence(
-                        amd_feature.start,
-                        amd_feature.end,
-                        amd_feature.strand,
-                        Seq(amd_phage.genome, IUPAC.unambiguous_dna)
-                    )
-
-                elif amd_feature.type == 'tRNA':
-                    sequence = get_rna_sequence(
-                        amd_feature.start,
-                        amd_feature.end,
-                        amd_feature.strand,
-                        Seq(amd_phage.genome, IUPAC.unambiguous_dna)
-                    )
-
-                else:
-                    raise ValueError('Feature type not recognized')
-
-                try:
-                    # If not found in amd table, look if we already created it for MAS table
-                    mas_annotation = Annotation.objects.get(sequence=sequence)
-
-                except ObjectDoesNotExist:
-                    mas_annotation = Annotation(
-                        sequence=sequence,
-                        flag=7
-                    )
-                    new_annotations.append(mas_annotation)
-                    mas_annotation.save()
-
-                mas_feature = Feature(
-                    phage=mas_phage,
-                    start=amd_feature.start,
-                    stop=amd_feature.end,
-                    type=amd_feature.type,
-                    strand=amd_feature.strand,
-                    annotation=mas_annotation
+        for feature in phage_features.all():
+            # Find annotation associated with feature
+            ftype = None
+            if feature.type == 'CDS':
+                sequence = get_protein_sequence(
+                    feature.start,
+                    feature.stop,
+                    feature.strand,
+                    Seq(genome.genome_sequence, IUPAC.unambiguous_dna)
                 )
-                features.append(mas_feature)
+                ftype = 'CDS'
 
-            phage_features.append(features)
+            elif feature.type == 'repeat_region' or feature.type == 'Repeat Region':
+                sequence = get_dna_sequence(
+                    feature.start,
+                    feature.stop,
+                    feature.strand,
+                    Seq(genome.genome_sequence, IUPAC.unambiguous_dna)
+                )
+                ftype = 'Repeat Region'
 
-        for i, phage in enumerate(phages):
-            #     print(phage.name)
-            #     phage.save()
-            for feature in phage_features[i]:
-                print(feature)
-                feature.save()
+            elif feature.type == 'tRNA':
+                sequence = get_rna_sequence(
+                    feature.start,
+                    feature.stop,
+                    feature.strand,
+                    Seq(genome.genome_sequence, IUPAC.unambiguous_dna)
+                )
+                ftype = 'tRNA'
 
-    except:
-        for annoation in new_annotations:
-            annoation.delete()
+            else:
+                raise ValueError('Feature type not recognized')
 
-        for i, phage in enumerate(phages):
-            phage.delete()
+            try:
+                # If not found in amd table, look if we already created it for MAS table
+                mas_annotation = Annotation.objects.using('default').get(sequence=sequence)
 
-            for feature in phage_features[i]:
-                feature.delete()
+            # start from here
+            except ObjectDoesNotExist:
+                print('Warning: Annotation not found. Creating...')
+                mas_annotation = Annotation(
+                    sequence=sequence,
+                    flag=7
+                )
+                new_annotations.append(mas_annotation)
+                mas_annotation.save()
+
+            mas_feature = Feature(
+                genome=genome,
+                start=feature.start,
+                stop=feature.stop,
+                type=ftype,
+                strand=feature.strand,
+                annotation=mas_annotation
+            )
+            features.append(mas_feature)
+
+    Feature.objects.using('default').bulk_create(features, batch_size=1000)
+    print('Done moving phages and features')
 
 
 def move_search_results():
-    for amd_search_result in SearchResults.objects.iterator():
-        # Get annotation this search result links to
-        mas_annotation = Annotation.objects.get(sequence=amd_search_result.sequence)
+    print('Starting moving search results.')
 
-        if amd_search_result.hhpred_pdb:
-            with io.StringIO(amd_search_result.hhpred_pdb) as fh:
-                obj = HHSearch_Result(
-                    annotation=mas_annotation,
-                    database='pdb',
-                    run_date=datetime(2019, 5, 9)
-                )
-                obj.result.save(name=base36encode(mas_annotation.id), content=ContentFile(content=fh.read()))
-                obj.save()
+    rpsblast_bin = []
+    hhsearch_bin = []
+    blastp_bin = []
+    for old_search_model in [old_Blastp_Result, old_HHSearch_Result, old_RPSBlast_Result]:
+        for old_search_result in old_search_model.objects.using('old-mas').all():
+            # Get annotation this search result links to
+            old_anno = Annotation.objects.using('old-mas').get(id=old_search_result.annotation_id)
+            mas_annotation = Annotation.objects.using('default').get(sequence=old_anno.sequence)
 
-        if amd_search_result.blastp_swissprot:
-            with io.StringIO(amd_search_result.blastp_swissprot) as fh:
-                obj = Blastp_Result(
-                    annotation=mas_annotation,
-                    database='swissprot',
-                    run_date=datetime(2019, 5, 9)
-                )
-                obj.result.save(name=base36encode(mas_annotation.id), content=ContentFile(content=fh.read()))
-                obj.save()
+            if isinstance(old_search_result, old_HHSearch_Result):
+                result_class = HHSearch_Result
+                bin = hhsearch_bin
+            elif isinstance(old_search_result, old_Blastp_Result):
+                result_class = Blastp_Result
+                bin = blastp_bin
+            elif isinstance(old_search_result, old_RPSBlast_Result):
+                result_class = RPSBlast_Result
+                bin = rpsblast_bin
+            else:
+                raise RuntimeError('Invalid class: "{}"'.format(old_search_result.__class__))
 
-        if amd_search_result.rpsblast_cdd:
-            with io.StringIO(amd_search_result.rpsblast_cdd) as fh:
-                obj = RPSBlast_Result(
-                    annotation=mas_annotation,
-                    database='cdd',
-                    run_date=datetime(2019, 5, 9)
-                )
-                obj.result.save(name=base36encode(mas_annotation.id), content=ContentFile(content=fh.read()))
-                obj.save()
+            obj = result_class(
+                annotation=mas_annotation,
+                database=old_search_result.database,
+                run_date=old_search_result.run_date,
+                status=old_search_result.status,
+                result=old_search_result.result
+            )
+            # results.append(obj)
+            # obj.result.save(name=base36encode(mas_annotation.id)
+            # obj.save(using='default')
+            bin.append(obj)
 
-
+            # with io.StringIO(amd_search_result.hhpred_pdb) as fh:
+            #     obj = HHSearch_Result(
+            #         annotation=mas_annotation,
+            #         database='pdb',
+            #         run_date=datetime(2019, 5, 9)
+            #     )
+            #     obj.result.save(name=base36encode(mas_annotation.id), content=ContentFile(content=fh.read()))
+            #     obj.save()
+        print('Done binning {}'.format(old_search_model))
+    RPSBlast_Result.objects.using('default').bulk_create(rpsblast_bin, batch_size=1000)
+    HHSearch_Result.objects.using('default').bulk_create(hhsearch_bin, batch_size=1000)
+    Blastp_Result.objects.using('default').bulk_create(blastp_bin, batch_size=1000)
+    print('Done moving search results.')
 
 
 '''
@@ -316,5 +330,3 @@ def base36encode(integer):
     for i in padding:
         result = result + i
     return result
-
-

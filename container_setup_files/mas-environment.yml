@@ -10,8 +10,8 @@ dependencies:
   - blas=1.0=mkl
   - blast=2.9.0=pl526he19e7b1_5
   - bzip2
-  - ca-certificates=2020.10.14=0
-  - certifi=2020.6.20=py38_0
+  - ca-certificates=2021.1.19=h06a4308_1
+  - certifi=2020.12.5=py38h06a4308_0
   - curl=7.69.1=hbc83047_0
   - django=3.1.2=py_0
   - expat=2.2.10=he6710b0_2
@@ -45,8 +45,8 @@ dependencies:
   - numpy=1.19.2=py38h54aff64_0
   - numpy-base=1.19.2=py38hfa32c7d_0
   - olefile=0.46=py_0
-  - openssl=1.1.1h=h7b6447c_0
-  - pandas=1.1.3=py38he6710b0_0
+  - openssl=1.1.1k=h27cfd23_0
+  - pandas=1.2.3=py38ha9443f7_0
   - pcre=8.44=he6710b0_0
   - perl=5.26.2=h14c3975_0
   - pillow=8.0.1=py38he98fc37_0

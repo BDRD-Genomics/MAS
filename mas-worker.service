@@ -1,0 +1,16 @@
+[Unit]
+Description=MAS Worker
+After=network.target
+
+[Service]
+Type=forking
+User={USER YOU INSTALLED MAS UNDER}
+Group={ABOVE USER'S GROUP}
+WorkingDirectory={YOUR PATH HERE}/MAS
+ExecStart=/bin/sh -c '{YOUR PATH HERE}/MAS/mas-worker.sh start'
+ExecStop=/bin/sh -c '{YOUR PATH HERE}/MAS/mas-worker.sh stop'
+ExecReload=/bin/sh -c '{YOUR PATH HERE}/MAS/mas-worker.sh restart'
+Restart=Always
+
+[Install]
+WantedBy=multi-user.target

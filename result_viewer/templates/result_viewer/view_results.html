@@ -73,7 +73,7 @@
             <label for="rerun">Rerun previously completed?</label>
             <input type="checkbox" name="rerun" id="rerun">
         </div>
-        <button type="button" class="btn btn-primary" id="submit-phage">Run for all proteins in genome</button>
+        <button type="button" class="btn btn-primary" id="submit-genome">Run for all proteins in genome</button>
     </div>
     {% endif %}
 
@@ -232,14 +232,14 @@
                                         <div class="glyphicon glyphicon-menu-right details-control"></div>
                                     </td>
                                     <td>
-                                        {% if db == "pdb" %}<a href="https://www.rcsb.org/structure/{{ alignment.hit_id|slice:":-2" }}" target="_blank">{% endif %}
+                                        {% if db == "pdb" %}<a href="https://www.rcsb.org/structure/{{ alignment.hit_id|slice:":4" }}" target="_blank">{% endif %}
                                         {{ alignment.hit_id }}
                                         {% if db == "pdb" %}</a>{% endif %}
                                     </td>
                                     <td>{{ alignment.hit_description }}</td>
                                     <td>{{ alignment.pdb_chain_name }}</td>
                                     <td>{{ alignment.prob }}</td>
-                                    <td>{{ alignment.lowest_evalue }}</td>
+                                    <td>{{ alignment.lowest_evalue|stringformat:"g" }}</td>
                                     <td>{{ alignment.top_score }}</td>
                                     <td>{{ alignment.hit_seq_len }}</td>
                                 </tr>

@@ -27,14 +27,10 @@ large number of searches simultaneously.
 
 ### Disclaimer
 
-The views expressed in this article reflect the results of research conducted by the author and do not necessarily reflect the official policy or position of the
-Department of the Navy, Department of Defense, nor the United States Government.
+The views, opinions, interpretations, conclusions, and recommendations expressed in this article reflect the results of research conducted by the authors and do not necessarily reflect the official policy or position of the Department of the Navy, Department of Defense, nor the United States Government.  
 
-I am a military service member or federal/contracted employee of the United States government. This work was prepared as part of my official duties. Title 17
-U.S.C. 105 provides that `copyright protection under this title is not available for any work of the United States Government.' Title 17 U.S.C. 101 defines a
-U.S. Government work as work prepared by a military service member or employee of the U.S. Government as part of that person's official duties.
-
-This work was supported/funded by work unit number A1704.
+KBL is a federal employee of the United States government. This work was prepared as part of her official duties. Title 17 U.S.C. 105 provides that `copyright protection under this title is not available for any work of the United States Government.' Title 17 U.S.C. 101 defines a U.S. Government work as work prepared by a military service member or employee of the U.S. Government as part of that person's official duties.
+This work was supported by WUNA1417, the Naval Research Enterprise Internship Program (NREIP), and by the Assistant Secretary of Defense for Health Affairs, through the Peer Reviewed Medical Research Program Focused Program Award, Log Number PR182667. 
 
 ### General Overview of MAS's Architecture
 
@@ -110,17 +106,22 @@ the installation process you should rebuild the containers.
 
 ##### Configuring the .env file
 
-This file contains 4 variables which you need to set. Because this file contains sensitive information, adjust the permissions to
+This file contains variables which you need to set. Because this file contains sensitive information, adjust the permissions to
 ensure other users can not access it (chmod go-rwx .env).
 
     - MYSQL_ROOT_PASSWORD: This is the password used to connect to the SQL database.
     - ADMIN_USER_PASSWORD: The password to the default administrative user. You will use this account to create other users.
     - LUIGI_USER_PASSWORD: The password to the luigi user. This account is used by the celery worker to submit job results 
         back to the server through a REST API. You will not need to log in as this user.
+    - RABBITMQ_DEFAULT_PASS: The password used for communicating with the message broker.
     - ALLOWED_HOST: The name of the host machine. This will be added to the ALLOWED_HOSTS configuration in production mode. 
         This is necessary if users will access MAS over a local area network. For more information see 
         https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts
-    - DEVELOPER_MODE: Always have this set to FALSE for production. Setting this to TRUE is for debugging only.
+    - DEVELOPER_MODE: Always have this set to FALSE for production. MAS will print out degugging info when this is set to TRUE.
+    - MAS_WORKER_PID_FILE: The full path to the pid file which will be used by the mas-worker
+    - MAS_WORKER_LOG: Full path to log that mas-worker will use
+    - CONDA_EXE: Full path to conda executable. This will be in your environment after installing conda, however you need
+        to explicitly define it in order to daemonize the mas-worker.
 
 ##### Configuring luigi.cfg
 
@@ -192,17 +193,21 @@ download dependencies, run the install-worker script.
 
     ./install-worker.sh
 
-This will create the 'mas-worker' conda environment. After running the install script, you can start the worker by 
-running the run-worker script.
+This will create the 'mas-worker' conda environment. After running the install script, you can start, stop, and restart 
+the worker by running the mas-worker script.
 
-    ./run-worker.sh
+    ./mas-worker.sh start
+    ./mas-worker.sh stop
+    ./mas-worker.sh restart
+    
 
 #### 6) Creating Users and Setting Permissions
 
-If you completed steps 1-5, MAS should now be functional. You can now log into the admin account using the password you provided in the 
-.env file. If you would like to add new users, you can do so through the admin interface. When you are logged as admin navigate to 
-http://0.0.0.0:8080/admin/. Click on 'Users' and add new ones by selecting add user at the top right. You must set an initial password 
-but this can be changed by the intended user of the account later.
+If you completed steps 1-5 and started the worker, MAS should be functional. You can now log into the admin account using the password you provided in the 
+.env file. If you would like to add new users, you can do so through the admin interface. When you are logged as admin navigate to the admin interface
+by adding /admin/ to the site's domain. If you are accessing the site locally you would use the address http://0.0.0.0:8080/admin/. If you are running 
+on a named server you can replace 0.0.0.0 with the server's name (what you set as ALLOWED_HOST). Then, click on 'Users' and add new ones by selecting 
+add user at the top right. You must set an initial password but this can be changed by the intended user of the account later.
 
 After entering a username and password you will be taken to another page where you can enter various other information to be associated with
 the account. The important thing here is to decide on the user's level of access. Anyone with an account can view data on MAS. However, in 
@@ -214,16 +219,29 @@ permission, add Data Editors to chosen groups.
 The SQL server uses the docker volume *mas_db-data* to store its data. This will contain all genomes and annotations uploaded to MAS. 
 It is highly recommended to back this up. This can be done using the 'docker run' command. 
 
-    docker run --rm -v mas_db-data:/volume -v /path/to/your/backup_dir:/backup alpine tar -czf /backup/mas_db_backup.tar.gz -C /volume ./
+    docker exec mas-sql-server sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" mas' > /path/to/your/backup_dir/mas-db-backup.sql
 
-Just replace '/path/to/your/backup_dir' with the destination of the backup file.
+Just replace '/path/to/your/backup_dir' with the desired destination of the backup file.
 
-Search results are stored as text files and will not be present in the mas_db-data volume. The are found in
-the *mas_masmedia* volume. It is also recommended that you back the media volume up.
+Search results are stored as text files and will not be present in the mas_db-data volume. The are found in the *mas_masmedia* volume. It is also 
+recommended that you back the media volume up. You should do this immediately **after** backing up the SQL database. This is because the SQL database
+contains links to files in the media directory. If the sql database backup is newer than the media backup, there is a chance that there will be broken
+links when you restore the database. Pages trying to load the broken link to crash.
 
-    docker run --rm -v mas_masmedia:/volume -v /path/to/your/backup_dir:/backup alpine tar -czf /backup/mas_media_backup.tar.gz -C /volume ./
+    docker exec -w /home/daemon/MAS -u daemon mas sh -c 'tar -czkO media' > /path/to/your/backup_dir/mas-media-backup.tar.gz
 
-To restore from a back up use the following commands:
+To restore from a back up use the following commands (current data will be overwritten) :
 
-    docker run --rm -v mas_db-data:/volume -v /tmp:/backup alpine sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xzf /backup/mas_db_backup.tar.gz"
-    docker run --rm -v mas_masmedia:/volume -v /tmp:/backup alpine sh -c "rm -rf /volume/* /volume/..?* /volume/.[!.]* ; tar -C /volume/ -xzf /backup/mas_media_backup.tar.gz"
+    docker exec -i mas-sql-server sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" mas' < /path/to/your/backup_dir/mas-db-backup.sql
+    docker exec -i -u daemon mas /bin/bash -c 'rm -rf /home/daemon/MAS/media ; tar -C /home/daemon/MAS -xz <&0' < /path/to/your/backup_dir/mas-media-backup.tar.gz
+
+
+#### 8) Daemonizing the Worker
+
+MAS depends on a running worker to function. In order to ensure that the MAS worker runs continually, you must install it on the host 
+machine as a daemon. If your computer uses systemd you can do this by modifying the the provided mas-worker.service file:
+ 1. Replace bracketed instructions (including the brackets) in mas-worker.service with data specific to your setup. 
+ 2. Place the file in /etc/systemd/system
+ 3. Run run `systemctl daemon-reload` so the system recognizes the file you added.
+ 4. Run `systemctl enable mas-worker.service` so the worker will start on reboot.
+ 5. Run `systemctl start mas-worker.service` to start the worker immediately.
