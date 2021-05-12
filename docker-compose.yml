@@ -47,7 +47,7 @@ services:
     depends_on:
       - db
       - messagebroker
-    image: mas:1.1
+    image: mas:1.2
     container_name: mas
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"

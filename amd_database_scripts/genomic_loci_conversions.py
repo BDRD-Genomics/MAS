@@ -138,9 +138,10 @@ def get_protein_sequence(start, stop, strand, genome, table=11):
     Extract protein sequence from genome given coordinates in db standard format.
     'genome' is a Bio.Seq object
     '''
-    # print(get_dna_sequence(start, stop, strand, genome))
-    return get_dna_sequence(start, stop, strand, genome).translate(table=table, to_stop=True)
+    #  Not using cds=true because it causes issues with ambiguous seqs
     # return get_dna_sequence(start, stop, strand, genome).translate(table=11, cds=True)
+    prot = get_dna_sequence(start, stop, strand, genome).translate(table=table, to_stop=True)
+    return 'M' + prot[1:]
 
 
 def get_rna_sequence(start, stop, strand, genome):

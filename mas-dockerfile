@@ -31,6 +31,10 @@ RUN /home/daemon/miniconda/bin/conda env create --file /home/daemon/MAS/containe
 RUN /home/daemon/miniconda/bin/conda init
 RUN /home/daemon/miniconda/bin/conda clean -a -y
 
+# Generate Secret Key
+RUN cat /proc/sys/kernel/random/entropy_avail
+RUN /home/daemon/miniconda/envs/mas/bin/python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())' > /home/daemon/MAS/MAS/settings_files/secret_key.txt
+
 # Collect static files
 WORKDIR /home/daemon/MAS
 RUN mkdir static-files
@@ -39,26 +43,12 @@ RUN /home/daemon/miniconda/envs/mas/bin/python manage.py collectstatic --noinput
 # Create Terminase blast database
 RUN /home/daemon/miniconda/envs/mas/bin/makeblastdb -dbtype prot -in /home/daemon/MAS/databases/terminase/phage_terminases.fasta -input_type fasta -title "Terminase Database" -out /home/daemon/MAS/databases/terminase/terminase_db
 
-# Generate Secret Key
-RUN cat /proc/sys/kernel/random/entropy_avail
-RUN /home/daemon/miniconda/envs/mas/bin/python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())' > /home/daemon/MAS/MAS/settings_files/secret_key.txt
-
 # Download PDB chain info. It will be loaded into django db on MAS container start-up.
 RUN curl ftp://ftp.wwpdb.org/pub/pdb/derived_data/pdb_seqres.txt.gz > pdb_seqres.txt.gz
 RUN gzip -d pdb_seqres.txt.gz
 
 # Create directory for luigi logs
 RUN mkdir luigi_logs
-
-# Dowload Databases
-#RUN mkdir /home/daemon/databases
-#WORKDIR /home/daemon/databases
-#RUN curl http://gwdu111.gwdg.de/~compbiol/uniclust/2020_06/UniRef30_2020_06_hhsuite.tar.gz > UniRef30_2020_06_hhsuite.tar.gz
-#RUN curl ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz > uniprot_sprot.fasta.gz
-#RUN gzip -d uniprot_sprot.fasta.gz
-#RUN mkdir /home/daemon/databases/swissprot
-#RUN /home/daemon/miniconda/envs/mas/bin/makeblastdb -dbtype prot -in uniprot_sprot.fasta -input_type fasta -title SwissProt -out /home/daemon/databases/swissprot/swissprot
-#RUN rm uniprot_sprot.fast*
 
 USER root
 

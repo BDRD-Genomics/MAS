@@ -309,7 +309,7 @@ def main(args):
 
     # Get phage's genome
     phage_obj = Genome.objects.get(genome_name=args.phage_name)
-    genome = Seq(phage_obj.genome_sequence, IUPAC.unambiguous_dna)
+    genome = Seq(phage_obj.genome_sequence, IUPAC.ambiguous_dna)
 
     df = GetFeatureTable(args.phage_name, genome)
 
@@ -380,7 +380,7 @@ def main(args):
         # import datetime
         # with fake_time('2018-01-01 00:00:01'):
         cmd = 'LD_PRELOAD=/home/daemon/miniconda/envs/mas/lib/python3.8/site-packages/libfaketime/vendor/libfaketime/src/libfaketime.so.1 FAKETIME="2019-01-01 00:00:01" ' \
-              f'tbl2asn -i {fsa_path} -j [genome={args.phage_name}][gcode=11] -n {args.phage_name} -Z {os.path.join(args.output_folder, "%s_tbl2asn_discrepancy_report.txt" % args.phage_name)} -V b'
+              f'tbl2asn -i "{fsa_path}" -j [genome="{args.phage_name}"][gcode=11] -n "{args.phage_name}" -Z "{os.path.join(args.output_folder, "%s_tbl2asn_discrepancy_report.txt" % args.phage_name)}" -V b'
         subprocess.run(cmd, check=True, shell=True)
 
         # Fix locus line

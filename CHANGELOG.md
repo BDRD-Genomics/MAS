@@ -12,3 +12,7 @@
 - Fixing hhsearch/PDB evalue formatting.
 - Fixing incorrect links to PDB when chain id is 2 letters.
 - Fixing result table highlighting.
+
+## VERSION 1.2 - 5/12/21
+- Fixed missing secret key bug in the MAS container dockerfile.
+- Set first residue to M in protein sequences with non-standard start codons.
