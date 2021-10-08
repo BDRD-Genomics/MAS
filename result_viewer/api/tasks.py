@@ -68,7 +68,6 @@ def run_single_search(accession, tool, database, site):
         print('Search pipeline finished')
 
 
-
 @shared_task
 def run_multiple_search(genome_name, rerun, tools_and_databases, site):
     if is_luigi_server_functional() and is_mas_reachable_from_worker(site):

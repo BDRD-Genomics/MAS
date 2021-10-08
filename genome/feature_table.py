@@ -1,6 +1,6 @@
 import pandas as pd
 
-from amd_database_scripts.genomic_loci_conversions import *
+from genome.genomic_loci_conversions import *
 from django.core.exceptions import ObjectDoesNotExist
 from Bio.Blast import NCBIXML
 
@@ -54,16 +54,6 @@ def GetFeatureTable(phage_name, genome):
     :param genome: (Bio.Seq) Full genome sequence
     :return: Pandas DataFrame
     '''
-    # Connect to database
-    # connection = sqlite3.connect(DB_FILE)
-    # cursor = connection.cursor()
-    #
-    # # Get phage's features
-    # result = cursor.execute('SELECT * FROM features WHERE phage_name = ?', (phage_name,))
-    # features = result.fetchall()
-    # if len(features) == 0:
-    #     raise RuntimeError('ERROR: %s does not have any features.' % phage_name)
-
     # Get all features associated with phage
     features = []
     feature_obj_list = list(Feature.objects.filter(genome__genome_name=phage_name))

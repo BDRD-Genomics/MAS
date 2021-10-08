@@ -106,6 +106,37 @@ class GetProtSeqView(PipelineAPIMixin, APIView):
         return response.Response(s.data)
 
 
+class GetGenomeView(PipelineAPIMixin, APIView):
+    permission_classes = [permissions.DjangoModelPermissions]
+    queryset = Genome.objects.all()
+
+    def get(self, request, genome_name, format=None):
+        try:
+            genome = self.queryset.get(genome_name=genome_name)
+            genome_features = Feature.objects.filter(genome=genome)
+            counts = genome_features.aggregate(
+                tRNAs=Count('id', filter=Q(type='tRNA')),
+                repeats=Count('id', filter=Q(type='Repeat Region')),
+                cds=Count('id', filter=Q(type='CDS'))
+            )
+            if counts['repeats'] > 0:
+                DTR_length = len(genome_features.get(type='Repeat Region').annotation.sequence)
+            else:
+                DTR_length = 0
+
+        except Genome.DoesNotExist:
+            raise Http404
+
+        s = GenomeSeqSerializer({
+            'genome_name': genome.genome_name,
+            'genome_sequence': genome.genome_sequence,
+            'num_cds': counts['cds'],
+            'num_trna': counts['tRNAs'],
+            'len_dtr': DTR_length
+        })
+        return response.Response(s.data)
+
+
 class UploadResultsView(PipelineAPIMixin, APIView):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser,)
 

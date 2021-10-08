@@ -9,6 +9,14 @@ class ProteinSeqSerializer(serializers.ModelSerializer):
         fields = ['sequence']
 
 
+class GenomeSeqSerializer(serializers.Serializer):
+    genome_name = serializers.CharField(max_length=Genome._meta.get_field('genome_name').max_length)
+    genome_sequence = serializers.CharField(max_length=Genome._meta.get_field('genome_sequence').max_length)
+    num_cds = serializers.IntegerField()
+    num_trna = serializers.IntegerField()
+    len_dtr = serializers.IntegerField()
+
+
 class RunSearchAjaxSerializer(serializers.Serializer):
     tool = serializers.CharField(max_length=20)
     database = serializers.CharField(max_length=20)

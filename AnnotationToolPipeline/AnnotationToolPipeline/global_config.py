@@ -9,7 +9,6 @@ class Globals(luigi.Config):
     OUTPUT_DIR = luigi.Parameter(
         default=os.path.join(os.path.split(os.path.dirname(os.path.realpath(__file__)))[0], 'output')
     )
-    # AMD_DATABASE_SCRIPTS_PATH = luigi.Parameter()
     MAS_USERNAME = luigi.Parameter(default='luigi')
     MAS_PASSWORD = luigi.Parameter(default=os.environ['LUIGI_USER_PASSWORD'])
     MAS_CRT = luigi.Parameter(default=None)

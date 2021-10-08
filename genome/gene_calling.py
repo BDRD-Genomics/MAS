@@ -1,22 +1,10 @@
-#!/usr/bin/env python
-'''
-Matt Lueder
-
-This script uploads a phage genome, and uses the genome as input into glimmer3 and trnascan-se to automatically add
-cds and trna features. It wraps the upload_phage.py and create_features_for_phage.py scripts. Annotations for tRNAs
-and terminal repeats are created automatically.
-
-Requires the tools long-orfs, extract, build-icm, glimmer3, and trnascan-se to be in PATH.
-These are available as conda packages:
-> conda install glimmer trnascan-se
-
-To see usage information use the option '-h'.
-'''
-
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import os, django
+from argparse import Namespace
+
+from genome.genomic_loci_conversions import *
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "LIMS.settings")
 django.setup()
@@ -60,3 +48,51 @@ def run_trnascan_se(fasta_path, phage_name, output_destination):
     out_file_path = os.path.join(output_destination, '%s.trnascan_se.results.txt' % phage_name)
     subprocess.run(['tRNAscan-SE', '-B', '-D', '-o', out_file_path, fasta_path], check=True)
     return out_file_path
+
+
+def parse_glimmer_results(path):
+    with open(path, 'r') as glimmer_predict:
+        for line in glimmer_predict:
+            if line.startswith(">"):
+                continue
+            else:
+                lineSplit = [x.strip() for x in line.split()]
+
+                start, stop, strand = glimmer_to_db_standard(
+                    start=int(lineSplit[1]),
+                    stop=int(lineSplit[2]),
+                    strand=lineSplit[3][0]
+                )
+
+                yield Namespace(
+                    start=start,
+                    stop=stop,
+                    strand=strand
+                )
+
+
+def parse_trnascan_results(path):
+    with open(path, 'r') as trnascan_results:
+        ready = False
+        for line in trnascan_results:
+            if line.startswith('---'):
+                ready = True
+                continue
+
+            if ready is True:
+                lineSplit = [x.strip() for x in line.split()]
+
+                begin = int(lineSplit[2])
+                end = int(lineSplit[3])
+
+                # Convert to database standard genomic loci representation
+                start, stop, strand = trnascan_to_db_standard(begin, end)
+
+                yield Namespace(
+                    start=start,
+                    stop=stop,
+                    strand=strand,
+                    amino=lineSplit[4],
+                    codon=lineSplit[5],
+                    score=float(lineSplit[8])
+                )

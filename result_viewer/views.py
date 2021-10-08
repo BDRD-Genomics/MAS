@@ -5,13 +5,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 
-import json
-import io
 import math
 from copy import copy
 
 from Bio.Blast import NCBIXML
 
+from MAS.celery import app
 from result_viewer.forms import AnnotationForm, GenomeSearchForm
 from result_viewer.hhsuite2_text import Hhsuite2TextParser
 from result_viewer.models import *
@@ -207,6 +206,7 @@ class MixinForBaseTemplate(generic.base.ContextMixin):
             context['dark_mode'] = self.request.session.get('dark_mode', False)
 
         context['genome_search_form'] = GenomeSearchForm()
+        context['worker_active'] = bool(app.control.inspect(settings.CELERY_WORKERS).ping())
         return context
 
 
@@ -300,7 +300,7 @@ class ViewResults(LoginRequiredMixin, MixinForBaseTemplate, generic.UpdateView):
                 if hhsearch_result.result:
                     for hhr in Hhsuite2TextParser(hhsearch_result.result.open(mode='r')):
                         break
-                    context['hhsearch_alignments'][db]['alignments'] = [hhsearch_hsp_to_dict(x) for x in hhr.hsps]
+                    context['hhsearch_alignments'][db]['alignments'] = {x.hit_id: hhsearch_hsp_to_dict(x) for x in hhr.hsps}
 
                 else:
                     context['hhsearch_alignments'][db]['alignments'] = []
@@ -323,8 +323,8 @@ class ViewResults(LoginRequiredMixin, MixinForBaseTemplate, generic.UpdateView):
 
                 if blastp_result.result:
                     record = NCBIXML.read(blastp_result.result.open(mode='r'))
-                    context['blastp_alignments'][db]['alignments'] = [blastp_alignment_to_dict(x) for x in
-                                                                      record.alignments]
+                    context['blastp_alignments'][db]['alignments'] = {x.accession: blastp_alignment_to_dict(x) for x in
+                                                                      record.alignments}
 
                 else:
                     context['blastp_alignments'][db]['alignments'] = []
@@ -347,7 +347,7 @@ class ViewResults(LoginRequiredMixin, MixinForBaseTemplate, generic.UpdateView):
 
                 if rpsblast_result.result:
                     record = NCBIXML.read(rpsblast_result.result.open(mode='r'))
-                    context['rpsblast_alignments'][db]['alignments'] = [blastp_alignment_to_dict(x) for x in record.alignments]
+                    context['rpsblast_alignments'][db]['alignments'] = {x.accession: blastp_alignment_to_dict(x) for x in record.alignments}
 
                 else:
                     context['rpsblast_alignments'][db]['alignments'] = []

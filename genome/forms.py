@@ -22,7 +22,7 @@ import pandas as pd
 
 from genome import models as genome_models
 from genome import views as genome_views
-from amd_database_scripts.genomic_loci_conversions import *
+from genome.genomic_loci_conversions import *
 
 
 def validate_fasta_file(instance):

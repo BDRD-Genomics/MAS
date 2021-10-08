@@ -124,7 +124,7 @@
     margin-right: 4px;
 }
 
-#run-search-button:disabled > span.glyphicon {
+#run-search-button.running:disabled > span.glyphicon {
     -webkit-animation: spin 1500ms infinite linear;
 }
 

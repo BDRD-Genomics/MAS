@@ -54,7 +54,7 @@ def _get_sacct_job_status(job_id):
     for line in result.stdout.decode().splitlines():
         ls = line.split('|')
         if ls[0] == str(job_id):
-            state = ls[1]
+            state = ls[1].split()[0].split('+')[0]
             exit_code = int(ls[2].split(':')[0])
             return state, exit_code
     raise RuntimeError('Could not find job status in sacct output. Is SLURM accounting properly configured?')

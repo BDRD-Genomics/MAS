@@ -83,8 +83,8 @@ def get_annotation_flags():
 
 
 @register.simple_tag()
-def get_bioinformatics_users():
-    return User.objects.filter(groups__name='Bioinformatics')
+def get_data_editors():
+    return User.objects.filter(groups__name='Data Editors').exclude(username='luigi')
 
 
 @register.simple_tag()

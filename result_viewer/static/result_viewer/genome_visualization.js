@@ -190,7 +190,7 @@ $(document).ready(function() {
             // .attr('data-legend',function(d){return d.type;})
             .attr('title', function(d){
                 return "Accession: "+ d.accession+" Feature: "+ d.start + " " + d.stop + " " + d.strand + " " + d.type + " " + d.flag +
-                    ", Annotaiton: " + d.annotation + ", Pub Note: " + d.public_note + ", Private Note: " + d.private_note;
+                    ", Annotation: " + d.annotation + ", Pub Note: " + d.public_note + ", Private Note: " + d.private_note;
             });
 
     }

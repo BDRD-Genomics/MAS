@@ -9,39 +9,72 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import generic_protein
+from Bio.Alphabet import generic_nucleotide
 from Bio.Alphabet import IUPAC
 from Bio.Blast import NCBIXML
 from django.db import transaction
 from django.conf import settings
 from django.db.models.signals import post_save
 
-from amd_database_scripts import create_features_for_phage
-from amd_database_scripts.genomic_loci_conversions import *
-from amd_database_scripts import easy_upload
+from genome.genomic_loci_conversions import *
+from genome import gene_calling
 from genome import models as genome_models
 from genome.forms import parse_prots_from_coords
 
 from MAS.celery import app
 
 
+def on_genome_uploaded_or_removed(sender, **kwargs):  # TODO: ADD SIGNAL WHICH CALLS THIS UPON GENOME DELETION
+    if settings.INTERNAL_NUCLEOTIDE_DB_PATH:
+        i = app.control.inspect(settings.CELERY_WORKERS)
+        queue = i.scheduled()
+        if queue:
+            for worker in queue.keys():
+                for task in queue[worker]:
+                    if task['request']['name'] == 'genome.tasks.create_internal_nucleotide_blastdb':
+                        app.control.revoke(task['request']['id'])
+
+            create_internal_nucleotide_blastdb.apply_async(countdown=5 * 60)
+
+
 def on_annotation_changed(sender, **kwargs):
-    i = app.control.inspect()
+    i = app.control.inspect(settings.CELERY_WORKERS)
     queue = i.scheduled()
-    for worker in queue.keys():
-        for task in queue[worker]:
-            if task['request']['name'] == 'genome.tasks.create_internal_blastdb':
-                app.control.revoke(task['request']['id'])
+    if queue:
+        for worker in queue.keys():
+            for task in queue[worker]:
+                if task['request']['name'] == 'genome.tasks.create_internal_protein_blastdb':
+                    app.control.revoke(task['request']['id'])
 
-    create_internal_blastdb.apply_async(countdown=5 * 60)
+        create_internal_protein_blastdb.apply_async(countdown=5 * 60)
 
 
+genome_models.genome_upload_complete.connect(on_genome_uploaded_or_removed)
 post_save.connect(on_annotation_changed, sender=genome_models.Annotation)
 genome_models.genome_upload_complete.connect(on_annotation_changed)
 
 
 @shared_task
-def create_internal_blastdb():
-    print('Creating internal BLAST database.')
+def create_internal_nucleotide_blastdb():
+    print('Creating internal nucleotide BLAST database.')
+
+    if settings.INTERNAL_NUCLEOTIDE_DB_PATH:
+        fasta_file_path = settings.INTERNAL_NUCLEOTIDE_DB_PATH + '.fa'
+        phages = genome_models.Genome.objects.all()
+        phage_list = []
+        for phage in phages:
+            sequence = SeqRecord(Seq(phage.genome_sequence, generic_nucleotide), id=phage.genome_name,
+                                 description=phage.genome_name)
+            phage_list.append(sequence)
+
+        SeqIO.write(phage_list, fasta_file_path, "fasta")
+        subprocess.run(['makeblastdb', '-in', fasta_file_path, '-input_type', 'fasta', '-dbtype', 'nucl', '-title',
+                        'MAS Genomes', '-out', settings.NUCLEOTIDE_DATABASE], check=True)
+
+
+@shared_task
+def create_internal_protein_blastdb():
+    print('Creating internal protein BLAST database.')
 
     # Get path from luigi config
     cfg = ConfigParser()
@@ -93,10 +126,10 @@ def upload_bacterial_genome(name, genome_sequence, assignment_user):
             SeqIO.write(record, fasta_path, 'fasta')
 
             # Run glimmer on genome to find CDS
-            glimmer_output = easy_upload.run_glimmer(fasta_path, name, tempdir, 150)
+            glimmer_output = gene_calling.run_glimmer(fasta_path, name, tempdir, 150)
 
             # Run trnascan-se to find tRNAs
-            trnascan_output = easy_upload.run_trnascan_se(fasta_path, name, tempdir)
+            trnascan_output = gene_calling.run_trnascan_se(fasta_path, name, tempdir)
 
             # Create Genome object
             bacterial_genome = genome_models.Genome(
@@ -136,7 +169,7 @@ def upload_bacterial_genome(name, genome_sequence, assignment_user):
 
 # Create new annotation objects and associated features for CDS
 def create_CDS_annotations(glimmer_results_file_path, genome, assign_to, new_annotations, new_features):
-    for cds in create_features_for_phage.parse_glimmer_results(glimmer_results_file_path):
+    for cds in gene_calling.parse_glimmer_results(glimmer_results_file_path):
         sequence = Seq(genome.genome_sequence, IUPAC.ambiguous_dna)
         protein = get_protein_sequence(cds.start, cds.stop, cds.strand, sequence)
 
@@ -190,7 +223,7 @@ def create_custom_CDS_annotations(coordinate_file, translation_table, genome, as
 
 # Create new annotation objects and associated features for tRNAs
 def create_trna_annotations(trnascan_results_file_path, genome, assign_to, new_annotations, new_features):
-    for tRNA in create_features_for_phage.parse_trnascan_results(trnascan_results_file_path):
+    for tRNA in gene_calling.parse_trnascan_results(trnascan_results_file_path):
         sequence = Seq(genome.genome_sequence, IUPAC.ambiguous_dna)
         rna = get_rna_sequence(tRNA.start, tRNA.stop, tRNA.strand, sequence)
 

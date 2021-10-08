@@ -16,3 +16,16 @@
 ## VERSION 1.2 - 5/12/21
 - Fixed missing secret key bug in the MAS container dockerfile.
 - Set first residue to M in protein sequences with non-standard start codons.
+
+## VERSION 1.3 - 10/08/21
+- Fixed vulnerability: The broker URL for mas-worker is no longer set within the celery multi command. Instead it is set in the settings file.
+- Updated httpd to latest version
+- Modified the way sacct results are parsed to account for 'extra information' in the job status.
+- When uploading a phage with DTRs, search for identical repeat region annotation in database and use if found. This is to prevent a duplicate entry error upon genome upload for phages with the same DTR as a previously uploaded phage.
+- Added a button to the result viewer which copies the protein sequence to the user's clipboard.
+- Fixed bug causing alignment text to be associated with the incorrect table row in certain instances.
+- The 'too many features' warning is now only displayed on the genome navigator.
+- MAS will now detect if a worker is running and if not, it will warn the user with text in the bootstrap navbar and disable search and bacterial genome submit buttons.
+- Fixed 'annotation' misspelling in genome visualization tooltip
+- Fixing incorrect capitalization of 'always' in mas-worker.service which was preventing the service from restarting
+- Refactored code, renamed and moved some files, and removed unused code.

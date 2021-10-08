@@ -9,6 +9,7 @@ urlpatterns = [
     path('upload-results/', UploadResultsView.as_view(), name='upload_results'),
     path('test', TestConnectionView.as_view(), name='test_connection'),
     path('get-protein/<str:accession>', GetProtSeqView.as_view(), name='get_protein'),
+    path('get-genome/<str:genome_name>', GetGenomeView.as_view(), name='get_genome'),
     path('get-phage-data', GetPhageDataView.as_view(), name='get_phage_data'),
     path('get-annotation-data', GetAnnotationListView.as_view(), name='get_annotation_data'),
     # path('get-phage-data', GetPhageDataView.as_view(), name='get_phage_data'),

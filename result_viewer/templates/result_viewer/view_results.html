@@ -38,10 +38,12 @@
                 {% endfor %}
             </ul>
         </nav>
-        {% if feature_data %}
-            <svg id="chart" class="chart" width="99%" height="260"></svg>
-        {% else %}
-            This genome contains too many features to display visualization.
+        {% if navigator.type == "GenomeNavigator" %}
+            {% if feature_data %}
+                <svg id="chart" class="chart" width="99%" height="260"></svg>
+            {% else %}
+                This genome contains too many features to display visualization.
+            {% endif %}
         {% endif %}
     </div>
 
@@ -73,7 +75,7 @@
             <label for="rerun">Rerun previously completed?</label>
             <input type="checkbox" name="rerun" id="rerun">
         </div>
-        <button type="button" class="btn btn-primary" id="submit-genome">Run for all proteins in genome</button>
+        <button type="button" class="btn btn-primary" id="submit-genome" {% if not worker_active %}title="Start worker to enable." disabled{% endif %}>Run for all proteins in genome</button>
     </div>
     {% endif %}
 
@@ -111,7 +113,10 @@
                     </div>
                     <div role="group">
                         <span>
-                            <button type="button" class="btn btn-default" id="show-history">
+                            <button type="button" class="btn btn-default" id="copy-sequence" title="Copy sequence to clipboard">
+                                <i class="fa fa-clipboard"></i>
+                            </button>
+                            <button type="button" class="btn btn-default" id="show-history" title="Show annotation history">
                                 <i class="fa fa-history fa-lg"></i>
                             </button>
                         </span>
@@ -226,7 +231,7 @@
                             <th>Target Length</th>
                         </thead>
                         <tbody>
-                            {% for alignment in alignment_data.alignments %}
+                            {% for hit_accession, alignment in alignment_data.alignments.items %}
                                 <tr id="{{ alignment.hit_id }}">
                                     <td class="details-cell" align="center">
                                         <div class="glyphicon glyphicon-menu-right details-control"></div>
@@ -261,7 +266,7 @@
                             <th>Subject Length</th>
                         </thead>
                         <tbody>
-                            {% for alignment in alignment_data.alignments %}
+                            {% for hit_accession, alignment in alignment_data.alignments.items %}
                                 <tr id="{{ alignment.hit_id }}">
                                     <td class="details-cell" align="center">
                                         <div class="glyphicon glyphicon-menu-right details-control"></div>
@@ -307,7 +312,7 @@
                             <th>Subject Length</th>
                         </thead>
                         <tbody>
-                            {% for alignment in alignment_data.alignments %}
+                            {% for hit_accession, alignment in alignment_data.alignments.items %}
                                 <tr id="{{ alignment.hit_id }}">
                                     <td class="details-cell" align="center">
                                         <div class="glyphicon glyphicon-menu-right details-control"></div>
@@ -342,7 +347,9 @@
         {% if genome_length %}
             var GENOME_LENGTH = {{ genome_length }};
         {% endif %}
+        var WORKER_ACTIVE = {{ worker_active|yesno:"true,false" }};
         var QUERY_LEN = {{ query_len|safe }};
+        var SEQ = "{{ object.sequence|safe }}";
         var NAV_ARG = "{{ navigator.nav_arg|safe }}";
         var ACCESSION = "{{ accession|safe }}";
         var TOOL = "{{ tool|safe }}";

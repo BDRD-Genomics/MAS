@@ -109,12 +109,17 @@ REST_FRAMEWORK = {
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 TERMINASE_DATABASE = '/home/daemon/MAS/databases/terminase/terminase_db'
+INTERNAL_NUCLEOTIDE_DB_PATH = ''
 
 GIT_DIR = os.path.join(BASE_DIR, '.git')
 
-CELERY_BROKER_URL = 'amqp://mas:{password}@mas-message-broker'.format(password=os.getenv('RABBITMQ_DEFAULT_PASS'))
+if os.getenv('CELERY_WORKER') == 'TRUE':
+    CELERY_BROKER_URL = 'amqp://mas:{password}@0.0.0.0'.format(password=os.getenv('RABBITMQ_DEFAULT_PASS'))
+else:
+    CELERY_BROKER_URL = 'amqp://mas:{password}@mas-message-broker'.format(password=os.getenv('RABBITMQ_DEFAULT_PASS'))
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+CELERY_WORKERS = ['mas-worker@host']
 
 LUIGI_CFG = os.path.join(BASE_DIR, 'AnnotationToolPipeline', 'luigi.cfg')
 

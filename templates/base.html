@@ -6,7 +6,7 @@
     {% load static %}
     {% load custom_template_tags_filters %}
     {% get_annotation_flags as annotation_flags %}
-    {% get_bioinformatics_users as bfx_users %}
+    {% get_data_editors as users %}
     {% get_version as version %}
 
     <!-- Load universal style sheets -->
@@ -74,6 +74,7 @@
                         </ul>
                     </li>
                 </ul>
+{#           ########## TOGGLE THEME ###########}
                 <ul class="nav navbar-nav navbar-right">
                     <li>
                         <a href="#" id="toggle-theme">
@@ -85,6 +86,12 @@
                         </a>
                     </li>
                 </ul>
+{#           ########## INACTIVE WORKER WARNING ###########}
+                {% if not worker_active %}
+                    <ul class="nav navbar-nav navbar-right">
+                        <p class="navbar-text" style="color: #ff0500;">WARNING: No worker detected!</p>
+                    <ul>
+                {% endif %}
             </div>
         </nav>
 
@@ -118,8 +125,8 @@
                         Navigate by Assignment <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
-                        {% for bfx_user in bfx_users %}
-                            <li><a href="{% url 'assignment-nav-redirect' bfx_user %}">{{ bfx_user }}</a></li>
+                        {% for user in users %}
+                            <li><a href="{% url 'assignment-nav-redirect' user %}">{{ user }}</a></li>
                         {% endfor %}
                     </ul>
                 </li>

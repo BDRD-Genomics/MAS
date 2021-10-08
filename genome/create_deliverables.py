@@ -22,8 +22,8 @@ from Bio.SeqRecord import SeqRecord
 from Bio.SeqUtils import GC
 import pandas as pd
 
-from amd_database_scripts.genomic_loci_conversions import *
-from amd_database_scripts.feature_table import GetFeatureTable
+from genome.genomic_loci_conversions import *
+from genome.feature_table import GetFeatureTable
 
 from result_viewer.models import Genome
 from MAS import settings

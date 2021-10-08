@@ -32,7 +32,7 @@
 
                     <p>Assign to: {{ upload_form.assign_to }}</p>
 
-                <button class="btn btn-success button" type="submit" id="genome-submit">Submit</button>
+                <button class="btn btn-success button" type="submit" id="genome-submit" {% if not worker_active %}title="Start worker to enable." disabled{% endif %}>Submit</button>
                 <span id="upload-message">Gene and tRNA finding will run in background. It may take a few minutes for your genome to appear in the database.</span>
             </form>
         </div>

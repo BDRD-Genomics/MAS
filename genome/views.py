@@ -30,13 +30,11 @@ import sys
 import subprocess
 import multiprocessing
 
-from amd_database_scripts import easy_upload
-from amd_database_scripts import create_features_for_phage
-from amd_database_scripts.genomic_loci_conversions import *
-from amd_database_scripts import create_deliverables
-
 from result_viewer.views import MixinForBaseTemplate, add_context_for_genome_viz
 
+from genome import gene_calling
+from genome.genomic_loci_conversions import *
+from genome import create_deliverables
 from genome.forms import get_file_handle
 from genome import forms as genome_forms
 from genome import models as genome_models
@@ -369,7 +367,7 @@ class Upload_Phage(Upload_Genome):
                 phage_path = request.FILES['upload'].temporary_file_path()
                 syspath = sys.path
                 print(syspath)
-                phage_cds = easy_upload.run_glimmer(phage_path, name, output_dest)
+                phage_cds = gene_calling.run_glimmer(phage_path, name, output_dest)
 
                 phage = None
                 feature_saved_list = []
@@ -385,7 +383,7 @@ class Upload_Phage(Upload_Genome):
                         # if the phage is circularly permuted then get all the proteins from the phage and place them in temp file.
                         if upload_form.cleaned_data['circularly_permuted'] is True:
                             if phage_cds:
-                                for cds in create_features_for_phage.parse_glimmer_results(phage_cds):
+                                for cds in gene_calling.parse_glimmer_results(phage_cds):
                                     sequence = Seq(genome, IUPAC.ambiguous_dna)
                                     protein = get_protein_sequence(cds.start, cds.stop, cds.strand, sequence)
                                     record = SeqRecord(Seq(protein._data, generic_protein), id="%s | " % phage.genome_name,
@@ -469,8 +467,8 @@ class Upload_Phage(Upload_Genome):
                                 # created so the user does not have to overwrite a file
                                 new_output_dest = tempdir
 
-                                new_phage_cds = easy_upload.run_glimmer(new_fasta_path, name, new_output_dest)
-                                new_phage_t_rna = easy_upload.run_trnascan_se(new_fasta_path, name, new_output_dest)
+                                new_phage_cds = gene_calling.run_glimmer(new_fasta_path, name, new_output_dest)
+                                new_phage_t_rna = gene_calling.run_trnascan_se(new_fasta_path, name, new_output_dest)
 
                                 if new_phage_cds:
                                     create_CDS_annotations(
@@ -498,7 +496,7 @@ class Upload_Phage(Upload_Genome):
                                 )
 
                             # tRNA features and annotations
-                            phage_t_rna = easy_upload.run_trnascan_se(phage_path, name, output_dest)
+                            phage_t_rna = gene_calling.run_trnascan_se(phage_path, name, output_dest)
                             if phage_t_rna:
                                 create_trna_annotations(
                                     phage_t_rna, phage, upload_form.cleaned_data['assign_to'], new_annotations, new_features
@@ -506,25 +504,20 @@ class Upload_Phage(Upload_Genome):
 
                             # terminal repeat features
                             if repeat > 0:
-                                repeat_annotation = genome_models.Annotation()
-                                repeat_annotation.sequence = genome[:repeat]
-                                repeat_annotation.annotation = 'None'
-                                repeat_annotation.public_notes = 'Direct terminal repeat. Detected with sequencing data ' \
-                                                                 'via coverage based methods.'
-                                repeat_annotation.private_notes = 'This annotation was automatically generated.'
-                                repeat_annotation.flag = 9
+                                repeat_seq = genome[:repeat]
 
-                                list_user = upload_form.cleaned_data['assign_to']
-                                users = User.objects.all()
-                                user_id = None
-
-                                for user in users:
-                                    if user == list_user:
-                                        user_id = user
-
-                                repeat_annotation.assigned_to = user_id
-
-                                new_annotations[repeat_annotation.sequence] = repeat_annotation
+                                if genome_models.Annotation.objects.filter(sequence=repeat_seq).count() > 0:
+                                    repeat_annotation = genome_models.Annotation.objects.get(sequence=repeat_seq)
+                                else:
+                                    repeat_annotation = genome_models.Annotation()
+                                    repeat_annotation.sequence = repeat_seq
+                                    repeat_annotation.annotation = 'None'
+                                    repeat_annotation.public_notes = 'Direct terminal repeat. Detected with sequencing data ' \
+                                                                     'via coverage based methods.'
+                                    repeat_annotation.private_notes = 'This annotation was automatically generated.'
+                                    repeat_annotation.flag = 9
+                                    repeat_annotation.assigned_to = None
+                                    new_annotations[repeat_annotation.sequence] = repeat_annotation
 
                                 first_feature_repeat = genome_models.Feature(genome=phage, start=0, stop=repeat,
                                                                              type='Repeat Region', strand='+',
@@ -631,7 +624,7 @@ class Upload_Custom_Genome(Upload_Genome):
 
                     # Run trnascan-se to find tRNAs if option selected
                     if upload_form.cleaned_data['run_trnascan']:
-                        trnascan_output = easy_upload.run_trnascan_se(fasta_path, name, tempdir)
+                        trnascan_output = gene_calling.run_trnascan_se(fasta_path, name, tempdir)
                         if trnascan_output:
                             create_trna_annotations(
                                 trnascan_output, genome_sequence, assign_to, new_annotations, new_features

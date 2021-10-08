@@ -13,5 +13,6 @@ def login_redirect(request):
 class MasLoginView(MixinForBaseTemplate, views.LoginView):
     pass
 
+
 class MasLogoutView(MixinForBaseTemplate, views.LogoutView):
     pass

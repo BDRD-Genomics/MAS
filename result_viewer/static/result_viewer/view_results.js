@@ -34,6 +34,7 @@ var alignment = d3.select("#alignment")
         }).classed('mouse_tick', true);
     });
 
+
 function display_correct_db_buttons(button_group_id) {
     $('#database-button-div').children('.button-group').each(function () {
         var group = $(this);
@@ -56,6 +57,7 @@ function display_correct_db_buttons(button_group_id) {
         }
     });
 }
+
 
 function on_tool_button_click(tool) {
     // Switch tool
@@ -89,12 +91,14 @@ function on_tool_button_click(tool) {
     update();
 }
 
+
 d3.select('#hhsearch_button')
     .on('click', function () {
         if (TOOL !== 'hhsearch') {
             on_tool_button_click('hhsearch');;
         }
     });
+
 
 d3.select('#blastp_button')
     .on('click', function () {
@@ -103,12 +107,14 @@ d3.select('#blastp_button')
         }
     });
 
+
 d3.select('#rpsblast_button')
     .on('click', function () {
         if (TOOL !== 'rpsblast') {
             on_tool_button_click('rpsblast')
         }
     });
+
 
 $('.db-button').each(function () {
     var button = $(this)
@@ -125,10 +131,31 @@ $('.db-button').each(function () {
     });
 });
 
+
 d3.select('#svg-row-selector')
     .on('change', function () {
         update();
     });
+
+
+d3.select('#copy-sequence')
+    .on('click', function () {
+        console.log('Clicked***');
+       var temp_el = document.createElement('textarea');
+       // Set value (string to be copied)
+       temp_el.value = SEQ;
+       // Set non-editable to avoid focus and move outside of view
+       temp_el.setAttribute('readonly', '');
+       temp_el.style = {position: 'absolute', left: '-9999px'};
+       document.body.appendChild(temp_el);
+       // Select text inside element
+       temp_el.select();
+       // Copy text to clipboard
+       document.execCommand('copy');
+       // Remove temporary element
+       document.body.removeChild(temp_el);
+    });
+
 
 d3.select('#show-history')
     .on('click', function () {
@@ -140,6 +167,7 @@ d3.select('#show-history')
             historyBlock.hide();
         }
     });
+
 
 function is_form_data_changed() {
     function compare_fields(a, b) {
@@ -171,6 +199,7 @@ d3.selectAll('#form-div > :not(label)')
         }
     });
 
+
 d3.select('#reset-form')
     .on('click', function () {
         d3.selectAll('#form-div > :not(label)').each(function () {
@@ -178,6 +207,7 @@ d3.select('#reset-form')
             });
         d3.selectAll('.form-buttons > button').attr('disabled', 'disabled');
     });
+
 
 d3.select('#run-search-button')
     .on('click', function () {
@@ -198,6 +228,7 @@ d3.select('#run-search-button')
         set_run_status(1);
     });
 
+
 function get_selected_databases(tool) {
     var databases = [];
     $(`#${tool}-dbs.db-selection-row input`).each(
@@ -209,6 +240,7 @@ function get_selected_databases(tool) {
     );
     return databases;
 }
+
 
 d3.select('#submit-genome')
     .on('click', function () {
@@ -234,6 +266,7 @@ d3.select('#submit-genome')
         location.reload();
     });
 
+
 $('body').keypress(function (e) {
     if (e.key === "h" && e.ctrlKey) {
         $("#id_annotation").val('hypothetical protein');
@@ -245,6 +278,7 @@ $('body').keypress(function (e) {
         }
     }
 });
+
 
 function set_run_status(status) {
 
@@ -264,9 +298,9 @@ function set_run_status(status) {
             .addClass('glyphicon-play-circle');
 
         $('#run-search-button')
-            .attr('disabled', null)
-            .removeClass('btn-danger')
-            .addClass('btn-primary');
+            .attr('disabled', (WORKER_ACTIVE ? null : 'disabled'))
+            .removeClass('btn-danger running error')
+            .addClass('btn-primary complete');
 
         $('#run-button-txt')
             .text('Run');
@@ -286,8 +320,8 @@ function set_run_status(status) {
 
         $('#run-search-button')
             .attr('disabled', 'disabled')
-            .removeClass('btn-danger')
-            .addClass('btn-primary');
+            .removeClass('btn-danger error complete')
+            .addClass('btn-primary running');
 
         $('#run-button-txt')
             .text('Running...');
@@ -301,9 +335,9 @@ function set_run_status(status) {
             .addClass('glyphicon-remove-circle');
 
         $('#run-search-button')
-            .attr('disabled', null)
-            .removeClass('btn-primary')
-            .addClass('btn-danger');
+            .attr('disabled', (WORKER_ACTIVE ? null : 'disabled'))
+            .removeClass('btn-primary running complete')
+            .addClass('btn-danger error');
 
         $('#run-button-txt')
             .text('Retry');
@@ -674,7 +708,7 @@ function draw_data(data, date, status) {
             });
         } else {
             data.sort(function (a, b) {
-                return b.sum_score - a.sum_score;
+                return b.top_score - a.top_score;
             });
         }
         determine_rows(data);
@@ -741,6 +775,7 @@ function init_datatable(tool) {
         });
         t.on('click', 'div.details-control', function () {
             var tr = $(this).closest('tr');
+            var hit_accession = tr.attr('id')
             var row = t.row(tr);
 
             if (row.child.isShown()) {
@@ -750,7 +785,7 @@ function init_datatable(tool) {
             } else {
                 row.child(function () {
                     var c = d3.create('pre');
-                    c.text(alignments[row.index()].text);
+                    c.text(alignments[hit_accession].text);
                     return c.node();
                 }).show();
                 $(this).addClass('shown');
@@ -790,19 +825,19 @@ function update() {
 
     if (TOOL === 'blastp') {
         draw_data(
-            blastp_alignment_data[DATABASE].alignments,
+            Object.values(blastp_alignment_data[DATABASE].alignments),
             blastp_alignment_data[DATABASE].date_ran,
             blastp_alignment_data[DATABASE].status
         );
     } else if (TOOL === 'hhsearch') {
         draw_data(
-            hhsearch_alignment_data[DATABASE].alignments,
+            Object.values(hhsearch_alignment_data[DATABASE].alignments),
             hhsearch_alignment_data[DATABASE].date_ran,
             hhsearch_alignment_data[DATABASE].status
         );
     } else if (TOOL === 'rpsblast') {
         draw_data(
-            rpsblast_alignment_data[DATABASE].alignments,
+            Object.values(rpsblast_alignment_data[DATABASE].alignments),
             rpsblast_alignment_data[DATABASE].date_ran,
             rpsblast_alignment_data[DATABASE].status
         );
@@ -811,6 +846,7 @@ function update() {
     draw_key();
     $('[data-toggle="tooltip"]').tooltip({container: 'body'});
 }
+
 
 $(document).ready(function () {
     d3.select(`#${TOOL}_button`).attr('disabled', 'disabled');
