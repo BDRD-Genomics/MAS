@@ -25,6 +25,11 @@ large number of searches simultaneously.
 
 ![MAS-ScreenShot](imgs/MAS-ScreenShot.png)
 
+### Publication
+
+If you use MAS in your research, please cite:
+>Lueder, M.R., Cer, R.Z., Patrick, M. et al. Manual Annotation Studio (MAS): a collaborative platform for manual functional annotation of viral and microbial genomes. BMC Genomics 22, 733 (2021). https://doi.org/10.1186/s12864-021-08029-8
+
 ### Disclaimer
 
 The views, opinions, interpretations, conclusions, and recommendations expressed in this article reflect the results of research conducted by the authors and do not necessarily reflect the official policy or position of the Department of the Navy, Department of Defense, nor the United States Government.  
