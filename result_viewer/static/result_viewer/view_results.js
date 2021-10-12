@@ -822,22 +822,31 @@ function update() {
             .domain([0, 100])
             .interpolator(d3.interpolateMagma);
     }
-
+    var alignments = null;
     if (TOOL === 'blastp') {
+        if (DATABASE in blastp_alignment_data && !!blastp_alignment_data[DATABASE].alignments) {
+            alignments = Object.values(blastp_alignment_data[DATABASE].alignments);
+        }
         draw_data(
-            Object.values(blastp_alignment_data[DATABASE].alignments),
+            alignments,
             blastp_alignment_data[DATABASE].date_ran,
             blastp_alignment_data[DATABASE].status
         );
     } else if (TOOL === 'hhsearch') {
+        if (DATABASE in hhsearch_alignment_data && !!hhsearch_alignment_data[DATABASE].alignments) {
+            alignments = Object.values(hhsearch_alignment_data[DATABASE].alignments);
+        }
         draw_data(
-            Object.values(hhsearch_alignment_data[DATABASE].alignments),
+            alignments,
             hhsearch_alignment_data[DATABASE].date_ran,
             hhsearch_alignment_data[DATABASE].status
         );
     } else if (TOOL === 'rpsblast') {
+        if (DATABASE in rpsblast_alignment_data && !!rpsblast_alignment_data[DATABASE].alignments) {
+            alignments = Object.values(rpsblast_alignment_data[DATABASE].alignments);
+        }
         draw_data(
-            Object.values(rpsblast_alignment_data[DATABASE].alignments),
+            alignments,
             rpsblast_alignment_data[DATABASE].date_ran,
             rpsblast_alignment_data[DATABASE].status
         );

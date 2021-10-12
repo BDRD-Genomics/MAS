@@ -17,7 +17,7 @@
 - Fixed missing secret key bug in the MAS container dockerfile.
 - Set first residue to M in protein sequences with non-standard start codons.
 
-## VERSION 1.3 - 10/08/21
+## VERSION 1.3 - 10/08/21 (updated 10/12/21)
 - Fixed vulnerability: The broker URL for mas-worker is no longer set within the celery multi command. Instead it is set in the settings file.
 - Updated httpd to latest version
 - Modified the way sacct results are parsed to account for 'extra information' in the job status.
@@ -29,3 +29,4 @@
 - Fixed 'annotation' misspelling in genome visualization tooltip
 - Fixing incorrect capitalization of 'always' in mas-worker.service which was preventing the service from restarting
 - Refactored code, renamed and moved some files, and removed unused code.
+- Fixed bug in initial release on 10/08/21: Javascript error caused results not to show if a search has not been previously ran
