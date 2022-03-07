@@ -69,7 +69,7 @@ def create_internal_nucleotide_blastdb():
 
         SeqIO.write(phage_list, fasta_file_path, "fasta")
         subprocess.run(['makeblastdb', '-in', fasta_file_path, '-input_type', 'fasta', '-dbtype', 'nucl', '-title',
-                        'MAS Genomes', '-out', settings.NUCLEOTIDE_DATABASE], check=True)
+                        'MAS Genomes', '-out', settings.INTERNAL_NUCLEOTIDE_DB_PATH], check=True)
 
 
 @shared_task

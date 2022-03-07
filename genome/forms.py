@@ -121,8 +121,8 @@ class CrispyModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CrispyModelForm, self).__init__(*args, **kwargs)
         self.helper = CrispyHorizontalFormHelper()
-        self.helper.form_tag = False
-        self.helper.disable_csrf = True
+        # self.helper.form_tag = False
+        # self.helper.disable_csrf = True
 
 
 class CrispyHorizontalFormHelper(FormHelper):
@@ -136,8 +136,8 @@ class CrispyHorizontalFormHelper(FormHelper):
 class CrispyHorizontalInternalFormHelper(CrispyHorizontalFormHelper):
     def __init__(self, *args, **kwargs):
         super(CrispyHorizontalInternalFormHelper, self).__init__(*args, **kwargs)
-        self.form_tag = False
-        self.disable_csrf = True
+        # self.form_tag = False
+        # self.disable_csrf = True
 ### START classes moved from home.forms in LIMS ###
 
 class BaseAnnotationFormset(forms.BaseInlineFormSet):
@@ -266,6 +266,12 @@ class Custom_Genome_Upload_Form(forms.Form):
     )
 
     run_trnascan = forms.BooleanField(required=False)
+
+    direct_terminal_repeat_size = forms.IntegerField(
+        # required=True,
+        # initial=0,
+        help_text='Leave blank if no DTRs',
+    )
 
     assign_to = forms.ModelChoiceField(
         queryset=user_choices,
@@ -410,8 +416,8 @@ class Genome_Delete(forms.Form):
     def __init__(self, *args, **kwargs):
         super(Genome_Delete, self).__init__(*args, **kwargs)
         self.helper = CrispyHorizontalFormHelper()
-        self.helper.form_tag = False
-        self.helper.disable_csrf = True
+        # self.helper.form_tag = False
+        # self.helper.disable_csrf = True
 
 
 class Annotations_Delete(forms.Form):

@@ -1,13 +1,13 @@
 version: "3.7"
 services:
   messagebroker:
-    image: rabbitmq:3.8.9
+    image: rabbitmq:3.8
     container_name: mas-message-broker
     hostname: mas-message-broker
     restart: always
     ports:
       - target: 5672
-        published: 5672
+        published: ${RABBITMQ_PORT}
         protocol: tcp
         mode: host
     networks:
@@ -54,6 +54,7 @@ services:
       ADMIN_USER_PASSWORD: "${ADMIN_USER_PASSWORD}"
       LUIGI_USER_PASSWORD: "${LUIGI_USER_PASSWORD}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
+      RABBITMQ_PORT: "${RABBITMQ_PORT}"
       DEVELOPER_MODE: "${DEVELOPER_MODE}"
       ALLOWED_HOST: "${ALLOWED_HOST}"
       LD_PRELOAD: "/home/daemon/miniconda/envs/mas/lib/python3.8/site-packages/libfaketime/vendor/libfaketime/src/libfaketime.so.1"

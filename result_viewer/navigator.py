@@ -96,7 +96,7 @@ class GenomeNavigator(Navigator):
         self.nav_arg = genome_name
 
         phage_obj = Genome.objects.get(genome_name=genome_name)
-        self.queryset = Annotation.objects.filter(feature__genome=phage_obj).order_by('feature__start').distinct()
+        self.queryset = Annotation.objects.filter(feature__genome=phage_obj).order_by('feature__start').distinct() # TODO: DISTINCT DOES NOT WORK BECUASE OF OREDERBY ON RELATED TABLE
         self.size = self.queryset.count()
         self.description = 'You are navigating {}'.format(genome_name)
 

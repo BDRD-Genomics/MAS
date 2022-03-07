@@ -238,7 +238,7 @@ links when you restore the database. Pages trying to load the broken link to cra
 To restore from a back up use the following commands (current data will be overwritten) :
 
     docker exec -i mas-sql-server sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" mas' < /path/to/your/backup_dir/mas-db-backup.sql
-    docker exec -i -u daemon mas /bin/bash -c 'rm -rf /home/daemon/MAS/media ; tar -C /home/daemon/MAS -xz <&0' < /path/to/your/backup_dir/mas-media-backup.tar.gz
+    docker exec -i -u daemon mas /bin/bash -c 'rm -rf /home/daemon/MAS/media/* ; tar -C /home/daemon/MAS/media -xz <&0' < /path/to/your/backup_dir/mas-media-backup.tar.gz
 
 
 #### 8) Daemonizing the Worker

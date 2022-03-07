@@ -120,7 +120,7 @@ class GetGenomeView(PipelineAPIMixin, APIView):
                 cds=Count('id', filter=Q(type='CDS'))
             )
             if counts['repeats'] > 0:
-                DTR_length = len(genome_features.get(type='Repeat Region').annotation.sequence)
+                DTR_length = len(genome_features.filter(type='Repeat Region').first().annotation.sequence)
             else:
                 DTR_length = 0
 

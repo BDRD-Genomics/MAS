@@ -18,7 +18,7 @@
         {% if phage_form %}
             <form method="get" action="{% url 'genome:confirm_phage_delete' %}">
             {% csrf_token %}
-                {% crispy phage_form %}
+                {{ phage_form|crispy }}
             <button class="btn btn-success button" type="submit">Delete</button>
             </form>
             <br/><br/><br/>
@@ -26,4 +26,15 @@
             <p>No genomes to be shown</p>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+    $(document).ready(function() {
+        $('#id_genome').select2({
+            placeholder: 'Select phages to delete'
+            {#dropdownAutoWidth: true#}
+        });
+    });
+    </script>
 {% endblock %}

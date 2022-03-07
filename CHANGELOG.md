@@ -30,3 +30,14 @@
 - Fixing incorrect capitalization of 'always' in mas-worker.service which was preventing the service from restarting
 - Refactored code, renamed and moved some files, and removed unused code.
 - Fixed bug in initial release on 10/08/21: Javascript error caused results not to show if a search has not been previously ran
+
+## VERSION 1.4 - 03/07/22
+- Made rabbitmq port configurable
+- Improving phage genome upload errors
+- Change luigi and admin user passwords if .env is updated upon mas container restart
+- Custom genome upload forms now allows users to enter direct terminal repeat information
+- Adding select2 to genome deletion form
+- Specifying Apps in startup makemigrations command so to properly build tables despite empty database
+- Made sh scripts more universal
+- Pull latest httpd base image when building mas image from dockerfile
+- Fixed command to load media volume from backup in README

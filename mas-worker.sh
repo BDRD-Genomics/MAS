@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 subcmd=$1
-wd="${0%/*}"
+wd="$(dirname "$0")"
 cd "$wd" || exit
 
 source .env
