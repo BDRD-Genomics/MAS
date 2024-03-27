@@ -1,5 +1,6 @@
 ![Manual Annotation Studio](imgs/MAS.png)
 -----------------------------------------
+#kal
 
 Manual Annotation Studio (MAS) is a web server which assists users in the process of identifying coding regions and 
 determining the function of genes. It does this by:
