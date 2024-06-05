@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.views import generic
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.forms import modelformset_factory, formset_factory
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -327,6 +327,104 @@ class Upload_Bacterial_Genome(Upload_Genome):
 
             return render(request, self.template_name, context)
 
+class Upload_Phageome(Upload_Genome):
+    template_name = 'genome/upload_phageome.html'
+    # context_object_name = 'phageome'
+
+    def get(self, request):
+        upload_form = genome_forms.Phageome_Upload_Form()
+
+        context = self.get_context_data()
+        context['upload_form'] = upload_form
+
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        upload_form = genome_forms.Phageome_Upload_Form(request.POST, request.FILES)
+
+        if upload_form.is_valid():
+
+            with TemporaryDirectory() as tempdir:
+                output_dest = tempdir
+
+                file = get_file_handle(request.FILES['upload'], mode='r')
+                phageome_file = list(SeqIO.parse(file, 'fasta'))
+                name = request.POST['name']
+                #group = request.POST['group']
+                #group = request.POST.get('group', '')
+                groups = upload_form.cleaned_data.get('group')
+                phageome_path = request.FILES['upload'].temporary_file_path()
+                phage = None
+                count = 0
+
+                '''
+                if group == '':
+                    phageome = genome_models.Phageome(phageome_name=name)
+                else:
+                    phageome = genome_models.Phageome(phageome_name=name, group=upload_form.cleaned_data['group'])
+                '''
+                phageome = genome_models.Phageome(phageome_name=name)
+                phageome.save()
+                for group in groups.iterator():
+                    phageome.group.add(group)
+                phageome.save()
+
+                try:
+                    with transaction.atomic():
+                        for i in phageome_file:
+                            full_name = ''
+                            new_annotations = {}
+                            new_features = []
+                            count = count + 1
+                            '''
+                            if group == '':
+                                full_name = name + "_seq" + str(count)  
+                                phage = genome_models.Genome(genome_name=full_name, genome_sequence=i.seq.__str__(), organism='phage', phageome=phageome)
+                            else:
+                                full_name = genome_models.Group.objects.get(id=group).group_name + "_" + name + "_seq" + str(count)
+                                phage = genome_models.Genome(genome_name=full_name, genome_sequence=i.seq.__str__(), organism='phage', phageome=phageome)
+                            '''
+
+                            full_name = name + "_seq" + str(count)  
+                            phage = genome_models.Genome(genome_name=full_name, genome_sequence=i.seq.__str__(), organism='phage', phageome=phageome)
+                            phage.save()
+
+                            tmp_phage_path = os.path.join(tempdir, "tmp_phage.fasta")
+                            SeqIO.write(i, tmp_phage_path, "fasta")
+
+                            phage_cds = gene_calling.run_glimmer(tmp_phage_path, full_name, output_dest)
+                            phage_t_rna = gene_calling.run_trnascan_se(tmp_phage_path, full_name, output_dest)
+
+                            # cds features
+                            if phage_cds:
+                                create_CDS_annotations(
+                                    phage_cds, phage, upload_form.cleaned_data['assign_to'], new_annotations, new_features
+                                )
+
+                            # tRNA features and annotations
+                            if phage_t_rna:
+                                create_trna_annotations(
+                                    phage_t_rna, phage, upload_form.cleaned_data['assign_to'], new_annotations, new_features
+                                )
+
+                            add_annotations_and_features_to_db(new_annotations, new_features)
+                            genome_models.genome_upload_complete.send(sender=None)
+
+                except Exception as e:
+                    upload_form.errors.update(
+                        Error=': {} Phageome not uploaded.'.format(e)
+                    )
+                    context = self.get_context_data()
+                    context['upload_form'] = upload_form
+
+                    return render(request, self.template_name, context)
+
+            return redirect('genome:phage_list')
+        else:
+            context = self.get_context_data()
+            context['upload_form'] = upload_form
+
+            return render(request, self.template_name, context)
 
 class Upload_Phage(Upload_Genome):
     template_name = 'genome/upload_phage.html'
@@ -623,6 +721,111 @@ class Upload_Custom_Genome(Upload_Genome):
             return render(request, self.template_name, context)
 
 
+class Create_Group(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemplate, generic.View):
+    model = genome_models.Group
+    context_object_name = 'groups'
+    template_name = 'genome/create_group.html'
+    permission_required = 'genome.create_group'
+    permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
+
+    def get(self, request):
+        upload_form = genome_forms.Group_Creation_Form()
+        context = self.get_context_data()
+        context['upload_form'] = upload_form
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        upload_form = genome_forms.Group_Creation_Form(request.POST, request.FILES)
+        if upload_form.is_valid():
+
+            group_name = request.POST['group_name']
+            notes = request.POST['notes']
+            
+            group = genome_models.Group(group_name=group_name, notes=notes)
+            group.save()
+            
+            return redirect('genome:group_list')
+        else:
+            context = self.get_context_data()
+            context['upload_form'] = upload_form
+
+            return render(request, self.template_name, context)
+
+class Group_List(LoginRequiredMixin, MixinForBaseTemplate, generic.ListView):
+    model = genome_models.Group
+    context_object_name = 'groups'
+    template_name = 'genome/group_list.html'
+
+    def get_context_data(self,  **kwargs):
+        context = super(Group_List, self).get_context_data(**kwargs)
+        #genomes = genome_models.Group.objects.all()
+        #context = super().get_context_data(**kwargs)
+        #context = {'groups': genome_models.Group.objects.all()}
+
+        groups = genome_models.Group.objects.all()
+        context['group_info'] = get_group_data_dicts(groups)
+
+        return context
+
+class Group_Detail(LoginRequiredMixin, MixinForBaseTemplate, generic.DetailView):
+    model = genome_models.Group
+    context_object_name = 'group'
+    template_name = 'genome/group_detail.html'
+    group_dict = {}
+
+    def get_context_data(self, **kwargs):
+        context = super(Group_Detail, self).get_context_data(**kwargs)
+
+        genomes = genome_models.Genome.objects.filter(
+                group=context['group']).prefetch_related(
+                        'feature_set__annotation')
+        
+        phageomes = genome_models.Phageome.objects.filter(
+                group=context['group'])
+        
+        self.group_dict['group_name'] = context['group'].group_name
+        
+        context['genome_info'] = get_genome_data_dicts(genomes)
+        context['phageome_info'] = get_phageome_data_dicts(phageomes)
+        
+        return context
+
+class Phageome_List(LoginRequiredMixin, MixinForBaseTemplate, generic.ListView):
+    model = genome_models.Phageome
+    context_object_name = 'phageomes'
+    template_name = 'genome/phageome_list.html'
+
+    def get_context_data(self,  **kwargs):
+        context = super(Phageome_List, self).get_context_data(**kwargs)
+
+        phageomes = genome_models.Phageome.objects.all()
+        context['phageome_info'] = get_phageome_data_dicts(phageomes)
+
+        return context
+
+class Phageome_Detail(LoginRequiredMixin, MixinForBaseTemplate, generic.DetailView):
+    model = genome_models.Phageome
+    context_object_name = 'phageome'
+    template_name = 'genome/phageome_detail.html'
+    phageome_dict = {}
+
+    def get_context_data(self, **kwargs):
+        context = super(Phageome_Detail, self).get_context_data(**kwargs)
+
+        genomes = genome_models.Genome.objects.filter(
+                phageome=context['phageome']).prefetch_related(
+                        'feature_set__annotation')
+
+        #groups = context['phageome'].group
+        #features = genome_models.Feature.objects.filter(genome__in=genomes)
+        #annotations = genome_models.Annotation.objects.filter(feature__in=features)
+
+        #context['groups'] = genome_models.Group.objects.filter(group_name__in=groups)
+        self.phageome_dict['phageome_name'] = context['phageome'].phageome_name
+        context['genome_info'] = get_genome_data_dicts(genomes)
+        
+        return context
+
 # returns the list of genomes
 class Genome_List(LoginRequiredMixin, MixinForBaseTemplate, generic.ListView):
     model = genome_models.Genome
@@ -669,6 +872,8 @@ class Genome_Detail(LoginRequiredMixin, MixinForBaseTemplate, generic.DetailView
 
         self.phage_dict['genome_name'] = context['genome'].genome_name
         self.phage_dict['genome'] = context['genome'].genome_sequence
+        self.phage_dict['groups'] = context['genome'].group
+        self.phage_dict['notes'] = context['genome'].notes
         context['genome_data'] = self.phage_dict
 
         upload_form = genome_forms.Phage_Upload_Form
@@ -822,6 +1027,47 @@ class Get_Feature_Sequence(LoginRequiredMixin, generic.View):
 
         return render(request, 'genome/feature_sequence.html', context)
 
+'''
+class Edit_Genome_Info(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemplate, generic.ListView):
+'''
+class Update_Phageome(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemplate, generic.UpdateView):
+    model = genome_models.Phageome
+    context_object_name = 'phageome'
+    template_name = 'genome/update_phageome.html'
+    permission_required = 'genome.update_phageome'
+    permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
+    
+    fields = ['notes', 'group']
+
+    def get_success_url(self):
+        pk = self.kwargs["pk"]
+        return reverse('genome:phageome_detail', kwargs={"pk":pk})
+
+class Update_Group(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemplate, generic.UpdateView):
+    model = genome_models.Group
+    context_object_name = 'group'
+    template_name = 'genome/update_group.html'
+    permission_required = 'genome.update_group'
+    permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
+    
+    fields = ['notes']
+
+    def get_success_url(self):
+        pk = self.kwargs["pk"]
+        return reverse('genome:group_detail', kwargs={"pk":pk})
+
+class Update_Genome(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemplate, generic.UpdateView):
+    model = genome_models.Genome
+    context_object_name = 'genome'
+    template_name = 'genome/update_genome.html'
+    permission_required = 'genome.update_genome'
+    permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
+    
+    fields = ['notes', 'group']
+
+    def get_success_url(self):
+        pk = self.kwargs["pk"]
+        return reverse('genome:phage_detail', kwargs={"pk":pk})
 
 # loads the delete phage page
 class Genome_Delete(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemplate, generic.ListView):
@@ -1172,6 +1418,8 @@ def get_genome_data_dicts(genomes):
         phage_dict = {}
         phage_dict['genome_name'] = genome.genome_name
         phage_dict['organism'] = genome.organism
+        phage_dict['group'] = genome.group
+        phage_dict['notes'] = genome.notes
         cds = genome.feature_set.filter(type='CDS').count()
 
         cds_features = genome.feature_set.filter(type='CDS')
@@ -1193,6 +1441,89 @@ def get_genome_data_dicts(genomes):
         objects.append(phage_dict)
     return objects
 
+def get_group_data_dicts(groups):
+    objects = []
+    for group in groups:
+        group_dict = {}
+        group_dict['group_name'] = group.group_name
+        group_dict['notes'] = group.notes
+
+        phageomes_in_group = genome_models.Phageome.objects.filter(group=group)
+        genomes_in_group = genome_models.Genome.objects.filter(group=group)
+        group_dict['phageome_count'] = phageomes_in_group.count()
+        group_dict['genome_count'] = genomes_in_group.count()
+        group_dict['pk'] = group.pk
+
+        #set variables for total counts across group
+        total_cds = 0
+
+        for genome in genomes_in_group:
+            cds = genome.feature_set.filter(type='CDS').count()
+            total_cds = total_cds + cds
+            group_dict['cds_count'] = total_cds
+            
+        objects.append(group_dict)
+    return objects
+
+def get_phageome_data_dicts(phageomes):
+    objects = []
+    for phageome in phageomes:
+        phageome_dict = {}
+        phageome_dict['phageome_name'] = phageome.phageome_name
+        #phageome_dict['notes'] = phageome.notes
+        
+        phages_in_phageome = genome_models.Genome.objects.filter(phageome=phageome)
+        phageome_dict['phage_count'] = phages_in_phageome.count()
+        phageome_dict['pk'] = phageome.pk
+
+        #set variables for total counts across phageome
+        total_cds = 0
+        total_unpolished = 0
+        total_green = 0
+        total_yellow = 0
+        total_red = 0
+        total_endolysin = 0
+        total_review = 0
+        total_trna = 0
+
+        for genome in phages_in_phageome:
+            cds = genome.feature_set.filter(type='CDS').count()
+            total_cds = total_cds + cds
+            phageome_dict['cds_count'] = total_cds
+            
+            cds_features = genome.feature_set.filter(type='CDS')
+            flag_options_reverse = dict((v, k) for k, v in genome_models.Annotation.flag_options)
+            annotations = genome_models.Annotation.objects.filter(feature__in=cds_features)
+            
+            unpolished = annotations.filter(flag=flag_options_reverse['UNANNOTATED']).count()
+            total_unpolished = total_unpolished + unpolished
+            phageome_dict['unpolished_cds_count'] = total_unpolished
+            
+            green = annotations.filter(flag=flag_options_reverse['GREEN']).count()
+            total_green = total_green + green
+            phageome_dict['green_cds_count'] = total_green
+            
+            yellow = annotations.filter(flag=flag_options_reverse['YELLOW']).count()
+            total_yellow = total_yellow + yellow
+            phageome_dict['yellow_cds_count'] = total_yellow
+            
+            red = annotations.filter(flag=flag_options_reverse['RED']).count()
+            total_red = total_red + red
+            phageome_dict['red_cds_count'] = total_red
+            
+            endolysin = annotations.filter(flag=flag_options_reverse['ENDOLYSIN']).count()
+            total_endolysin = total_endolysin + endolysin
+            phageome_dict['endolysin_cds_count'] = total_endolysin
+            
+            review = annotations.filter(flag=flag_options_reverse['REVIEW NAME']).count()
+            total_review = total_review + review
+            phageome_dict['review_name_cds_count'] = total_review
+            
+            trna = genome.feature_set.filter(type='tRNA').count()
+            total_trna = total_trna + trna
+            phageome_dict['trna_count'] = total_trna
+        objects.append(phageome_dict)
+    return objects
 # Clear cache on save of any database
 @receiver(post_save)
 def post_save_delete(sender, **kwargs):

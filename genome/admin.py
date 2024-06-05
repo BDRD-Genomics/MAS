@@ -9,6 +9,8 @@ from . import models as genome_models
 admin.site.register(genome_models.Genome)
 admin.site.register(genome_models.Feature)
 admin.site.register(genome_models.Annotation)
+admin.site.register(genome_models.Group)
+admin.site.register(genome_models.Phageome)
 # admin.site.register(genome_models.HHSearch_Result)
 # admin.site.register(genome_models.Blastp_Result)
 # admin.site.register(genome_models.RPSBlast_Result)

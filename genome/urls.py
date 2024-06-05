@@ -11,6 +11,18 @@ urlpatterns = [
     path('genome/list/', views.Genome_List_SS.as_view(), name='phage_list'),
     path('genome/download/fasta/<int:genome_id>', views.genome_download_fasta, name='phage_download_fasta'),
     path('genome/download/deliverables/<int:genome_id>', views.download_deliverables, name='download_deliverables'),
+    path('genome/update/<int:pk>', views.Update_Genome.as_view(), name='update_genome'),
+    
+    path('group/create/', views.Create_Group.as_view(), name='create_group'),
+    path('group/list/', views.Group_List.as_view(), name='group_list'),
+    path('group/detail/<int:pk>', views.Group_Detail.as_view(), name='group_detail'),
+    path('group/update/<int:pk>', views.Update_Group.as_view(), name='update_group'),
+    
+    path('phageome/upload/', views.Upload_Phageome.as_view(), name='upload_phageome'),
+    path('phageome/list/', views.Phageome_List.as_view(), name='phageome_list'),
+    path('phageome/detail/<int:pk>', views.Phageome_Detail.as_view(), name='phageome_detail'),
+    path('phageome/update/<int:pk>', views.Update_Phageome.as_view(), name='update_phageome'),
+    
     path('phage-genome/upload/', views.Upload_Phage.as_view(), name='upload_phage'),
     path('bacterial-genome/upload/', views.Upload_Bacterial_Genome.as_view(), name='upload_bacterial_genome'),
     path('custom-genome/upload/', views.Upload_Custom_Genome.as_view(), name='upload_custom_genome'),

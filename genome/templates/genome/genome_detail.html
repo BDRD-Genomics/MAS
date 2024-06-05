@@ -32,6 +32,12 @@
                 <tr><td class="endo-flag"><b># Endolysin: </b></td><td>{{ genome.endolysin_cds_count }}</td></tr>
                 <tr><td><b># tRNA: </b></td><td>{{ genome.trna_count }}</td></tr>
                 <tr><td><b># Repeat Region: </b></td><td>{{ genome.repeat_region_count }}</td></tr>
+		<tr><td><b>Notes: </b>{{ genome.notes }}</td></tr>
+		<tr><td><b>Groups:</b>
+			{% for g in genome.group.all %}
+				<a href="{% url 'genome:group_detail' g.pk %}">| {{g.group_name}} |</a>
+			{% endfor %}
+		<tr><td><b><a href="{% url 'genome:update_genome' genome.pk %}">Update genome info</a></b></td></tr>
                 <tr><td><b><a href="{% url 'genome:phage_download_fasta' genome.pk %}">download fasta</a></b></td></tr>
                 <tr><td><b><a href="{% url 'genome:download_deliverables' genome.pk %}">download deliverables</a></b></td></tr>
             {% endfor %}

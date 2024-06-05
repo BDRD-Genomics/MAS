@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{%  static "genome/upload_phage.css" %}">
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<title>MAS | Update Group</title>
+{% endblock %}
+
+
+{% block body %}
+    <div class="block">
+        <div id="upload-form-spacer">
+            <h1> Update Group: {{ group.group_name }}</h1>
+            <form name="Form" id="form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                    <p>Notes: 
+		    	<tr><td>{{ form.notes }}</td></tr>
+		    </p>
+
+                <button class="btn btn-success button" type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="loader" style="display: none" id="load"></div>
+{% endblock %}
+
+{% block javascript %}
+    <script type="application/javascript" src="{% static "genome/upload_phage.js" %}" ></script>
+{% endblock %}

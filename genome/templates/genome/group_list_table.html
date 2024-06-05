@@ -1,0 +1,28 @@
+{% if group_info %}
+    {% load static %}
+
+    <table id="genome-table" class="table table-hover table-striped" width="100%">
+        <thead>
+        <tr>
+            <th>Group Name</th>
+            <th>Phageome Count</th>
+            <th>Total Sequences</th>
+            <th>Total CDS</th>
+
+        </tr>
+        </thead>
+        <tbody>
+    {% for group in group_info %}
+        <tr>
+		<td><a href="{% url 'genome:group_detail' group.pk %}">{{ group.group_name }}</a></td>
+            <td>{{ group.phageome_count }}</td>
+            <td>{{ group.seqs_count }}</td>
+            <td>{{ group.cds_count }}</td>
+        </tr>
+    {% endfor %}
+        <tbody>
+    </table>
+
+{% else %}
+    <p>No groups are available.</p>
+{% endif %}

@@ -44,6 +44,23 @@ def validate_fasta_file(instance):
         raise ValidationError('The following error occurred when attempting to validate fasta file: {}'.format(str(e)))
 
 
+def validate_multifasta_file(instance):
+
+    try:
+        file_text = get_file_handle(instance, mode='r')
+        #, alphabet=SingleLetterAlphabet
+        #accepts fasta files and tbl files <- not good
+        fasta_file = list(SeqIO.parse(file_text, "fasta"))
+
+        # Check for non-IUPAC chars
+        for i in fasta_file:
+            match = re.search('[^GACTRYSWKMBDHVN]', str(i.seq).upper())
+            if match:
+                raise ValidationError('FASTA file sequence contains unaccepted character: {}'.format(match.group()))
+
+    except ValueError as e:
+        raise ValidationError('The following error occurred when attempting to validate fasta file: {}'.format(str(e)))
+
 def validate_excel_file(instance):
     try:
         excel_file = get_file_handle(instance)
@@ -304,13 +321,83 @@ class Custom_Genome_Upload_Form(forms.Form):
 
         return cleaned_data
 
+class Group_Creation_Form(forms.Form):
+    error_css_class = 'error'
+    required_css_class = 'required'
+    
+    group_name = forms.CharField(
+        validators=[
+            genome_models.validate_genome_name,
+            genome_models.validate_duplicate_name
+        ],
+        max_length=100,
+        required=True,
 
-# displayed in phage_upload.html
-class Phage_Upload_Form(forms.Form):
-    user_choices = User.objects.none()
+    )
+
+    notes = forms.CharField(
+            max_length=100000,
+            required=False,
+            widget = forms.Textarea(attrs={'rows':10, 'cols':100}),
+            )
+    '''
+    class Meta:
+        model = genome_models.Group
+        fields = '__all__'
+    '''
+
+class Phageome_Upload_Form(forms.Form):
+    user_choices = User.objects.all()
+    group_choices = genome_models.Group.objects.all()
     error_css_class = 'error'
     required_css_class = 'required'
 
+
+    name = forms.CharField(
+        validators=[
+            genome_models.validate_genome_name,
+            genome_models.validate_duplicate_name
+        ],
+        max_length=100,
+        required=True,
+
+    )
+
+    upload = forms.FileField(
+        validators=[validate_multifasta_file],
+        help_text='Must be a fasta file!',
+    )
+
+    group = forms.ModelMultipleChoiceField(
+            queryset=group_choices,
+            required=False,
+            widget=forms.CheckboxSelectMultiple(),
+    )
+
+
+    assign_to = forms.ModelChoiceField(
+        queryset=user_choices,
+        required=False,
+    )
+
+    notes = forms.CharField(
+            max_length=100000,
+            required=False,
+            widget = forms.Textarea(attrs={'rows':10, 'cols':100}),
+            )
+
+# displayed in phage_upload.html
+class Phage_Upload_Form(forms.Form):
+    user_choices = User.objects.all()
+    error_css_class = 'error'
+    required_css_class = 'required'
+
+    notes = forms.CharField(
+            max_length=100000,
+            required=False,
+            widget = forms.Textarea(attrs={'rows':10, 'cols':100}),
+            )
+    
     name = forms.CharField(
         validators=[
             genome_models.validate_genome_name,

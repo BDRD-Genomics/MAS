@@ -43,14 +43,21 @@
 {#           ########## RESULT NAVIGATION OPTIONS ###########}
                     <li id="show-nav-options" class="dropdown">
                         <a href="#" role="button">
-                            Show Result Navigation Options <span class="caret"></span>
+                            Protein Navigation<span class="caret"></span>
                         </a>
                     </li>
 
-{#           ########## ADDITIONAL NAVIGATION OPTIONS ###########}
+{#           ########## LISTS ###########}
+                    <li id="show-lists" class="dropdown">
+                        <a href="#" role="button">
+                            Data Lists <span class="caret"></span>
+                        </a>
+                    </li>
+
+{#           ########## UPLOAD/DELETE ###########}
                     <li id="show-additional-nav-options" class="dropdown">
                         <a href="#" role="button">
-                            Show Additional Navigation Options <span class="caret"></span>
+                            Upload/Delete <span class="caret"></span>
                         </a>
                     </li>
 
@@ -133,37 +140,49 @@
             </ul>
         </nav>
 
+{###################### LISTS ######################}
+        <nav id="lists-navbar" class="navbar navbar-default dropdown-navbar" style="display: none">
+            <ul class="nav navbar-nav navbar-left">
+{#           ########## GENOME LIST ###########}
+                <li>
+                    <a href="{% url 'genome:phage_list' %}">
+                        Genomes
+                    </a>
+                </li>
+{#           ########## PHAGEOME LIST ###########}
+                <li>
+                    <a href="{% url 'genome:phageome_list' %}">
+                        Phageomes
+                    </a>
+                </li>
+{#           ########## GROUP LIST ###########}
+                <li>
+                    <a href="{% url 'genome:group_list' %}">
+                        Groups
+                    </a>
+		</li>
+{#           ########## LIST ANNOTATIONS ###########}
+                <li>
+                    <a href="{% url 'genome:annotation_list' %}">
+                        Annotations
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
 {###################### ADDITIONAL NAVIGATION ITEMS ######################}
         <nav id="additional-navbar" class="navbar navbar-default dropdown-navbar" style="display: none">
             <ul class="nav navbar-nav navbar-left">
+{#           ########## UPLOAD PHAGEOME ###########}
+                <li>
+                    <a href="{% url 'genome:upload_phageome' %}">
+                        Upload Phageome
+                    </a>
+                </li>
 {#           ########## UPLOAD PHAGE GENOME ###########}
                 <li>
                     <a href="{% url 'genome:upload_phage' %}">
                         Upload Phage Genome
-                    </a>
-                </li>
-{#           ########## UPLOAD BACTERIAL GENOME ###########}
-                <li>
-                    <a href="{% url 'genome:upload_bacterial_genome' %}">
-                        Upload Bacterial Genome
-                    </a>
-                </li>
-{#           ########## UPLOAD CUSTOM GENOME ###########}
-                <li>
-                    <a href="{% url 'genome:upload_custom_genome' %}">
-                        Upload Custom Genome
-                    </a>
-                </li>
-{#           ########## DELETE GENOME ###########}
-                <li>
-                    <a href="{% url 'genome:phage_delete' %}">
-                        Delete Genome
-                    </a>
-                </li>
-{#           ########## GENOME LIST ###########}
-                <li>
-                    <a href="{% url 'genome:phage_list' %}">
-                        Genome List
                     </a>
                 </li>
 {#           ########## UPLOAD ANNOTATIONS ###########}
@@ -172,10 +191,16 @@
                         Upload Annotations From Excel
                     </a>
                 </li>
-{#           ########## LIST ANNOTATIONS ###########}
+{#           ########## CREATE GROUP ###########}
                 <li>
-                    <a href="{% url 'genome:annotation_list' %}">
-                        Annotation List
+                    <a href="{% url 'genome:create_group' %}">
+                        Create Group
+                    </a>
+		</li>
+{#           ########## DELETE GENOME ###########}
+                <li>
+                    <a href="{% url 'genome:phage_delete' %}">
+                        Delete Genome
                     </a>
                 </li>
 {#           ########## GENOME SIMILARITY MATRIX ###########}
@@ -247,6 +272,11 @@
                         $('#primary-navbar').css('margin-bottom', '20px');
                         $('#show-additional-nav-options').removeClass('open');
                     }
+                    if ($('#show-lists').hasClass('open')) {
+                        $('#lists-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-lists').removeClass('open');
+                    }
 
                     if ($(this).hasClass('open')) {
                         $('#navigation-navbar').hide();
@@ -259,11 +289,44 @@
                     }
                 });
 
+
+
+                $('#show-lists').click(function () {
+                    if ($('#show-nav-options').hasClass('open')) {
+                        $('#navigation-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-nav-options').removeClass('open');
+                    }
+
+                    if ($('#show-additional-nav-options').hasClass('open')) {
+                        $('#additional-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-additional-nav-options').removeClass('open');
+                    }
+
+                    if ($(this).hasClass('open')) {
+                        $('#lists-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-lists').removeClass('open');
+                    } else {
+                        $('#lists-navbar').show();
+                        $('#primary-navbar').css('margin-bottom', '0px');
+                        $('#show-lists').addClass('open');
+                    }
+                });
+
+
+
                 $('#show-additional-nav-options').click(function () {
                     if ($('#show-nav-options').hasClass('open')) {
                         $('#navigation-navbar').hide();
                         $('#primary-navbar').css('margin-bottom', '20px');
                         $('#show-nav-options').removeClass('open');
+                    }
+                    if ($('#show-lists').hasClass('open')) {
+                        $('#lists-navbar').hide();
+                        $('#primary-navbar').css('margin-bottom', '20px');
+                        $('#show-lists').removeClass('open');
                     }
 
                     if ($(this).hasClass('open')) {

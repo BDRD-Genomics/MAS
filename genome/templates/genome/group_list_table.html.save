@@ -1,0 +1,25 @@
+
+{% if groups %}
+    {% load static %}
+
+    <table id="genome-table" class="table table-hover table-striped" width="100%">
+        <thead>
+        <tr>
+            <th>Group Name</th>
+            <th>Notes</th>
+
+        </tr>
+        </thead>
+        <tbody>
+    {% for group in groups %}
+        <tr>
+            <td>{{ group.group_name }}</td>
+            <td>{{ group.notes }}</td>
+        </tr>
+    {% endfor %}
+        <tbody>
+    </table>
+
+{% else %}
+    <p>No groups are available.</p>
+{% endif %}

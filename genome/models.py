@@ -34,12 +34,32 @@ def validate_duplicate_name(name):
 genome_upload_complete = django.dispatch.Signal()
 
 
+class Group(models.Model):
+    group_name = models.CharField(max_length=100, unique=True)
+    notes = models.TextField(max_length=100000, blank=True, null=True)
+
+    def __str__(self):
+        return self.group_name
+
+class Phageome(models.Model):
+    phageome_name = models.CharField(max_length=100, unique=True)
+    notes = models.TextField(max_length=100000, blank=True, null=True)
+    group = models.ManyToManyField(Group, blank=True)
+
+    def __str__(self):
+        return self.phageome_name
+
+
+
 # Create your models here.
 class Genome(models.Model):
     genome_name = models.CharField(max_length=100, unique=True)
     genome_sequence = models.TextField(max_length=15000000)
     organism = models.CharField(max_length=100, default='phage')
-
+    phageome = models.ForeignKey(Phageome, on_delete=models.SET_NULL, blank=True, null=True)
+    group = models.ManyToManyField(Group, blank=True)
+    notes = models.TextField(max_length=100000, blank=True, null=True)
+    
     def __str__(self):
         return self.genome_name
 

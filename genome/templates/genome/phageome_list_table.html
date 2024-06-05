@@ -1,0 +1,40 @@
+{% if phageome_info %}
+    {% load static %}
+
+    <table id="genome-table" class="table table-hover table-striped" width="100%">
+        <thead>
+        <tr>
+            <th>Phageome Name</th>
+            <th>Sequence Count</th>
+            <th># CDS</th>
+            <th># CDS Unannotated</th>
+            <th># Needs Review</th>
+            <th># Green Flag</th>
+            <th># Yellow Flag</th>
+            <th># Red Flag</th>
+            <th># Endolysin</th>
+            <th># tRNA</th>
+
+        </tr>
+        </thead>
+        <tbody>
+    {% for phageome in phageome_info %}
+        <tr>
+		<td><a href="{% url 'genome:phageome_detail' phageome.pk %}">{{ phageome.phageome_name }}</a></td>
+            <td>{{ phageome.phage_count }}</td>
+            <td>{{ phageome.cds_count }}</td>
+            <td>{{ phageome.unpolished_cds_count }}</td>
+            <td class="review-flag">{{ phageome.review_name_cds_count }}</td>
+            <td class="green-flag">{{ phageome.green_cds_count }}</td>
+            <td class="yellow-flag">{{ phageome.yellow_cds_count }}</td>
+            <td class="red-flag">{{ phageome.red_cds_count }}</td>
+            <td class="endo-flag">{{ phageome.endolysin_cds_count }}</td>
+            <td>{{ phageome.trna_count }}</td>
+        </tr>
+    {% endfor %}
+        <tbody>
+    </table>
+
+{% else %}
+    <p>No phageomes are available.</p>
+{% endif %}
