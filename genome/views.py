@@ -673,7 +673,7 @@ class Create_Group(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemp
     model = genome_models.Group
     context_object_name = 'groups'
     template_name = 'genome/create_group.html'
-    permission_required = 'genome.create_group'
+    permission_required = 'genome.add_group'
     permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
 
     def get(self, request):
@@ -982,7 +982,7 @@ class Update_Phageome(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseT
     model = genome_models.Phageome
     context_object_name = 'phageome'
     template_name = 'genome/update_phageome.html'
-    permission_required = 'genome.update_phageome'
+    permission_required = 'genome.change_phageome'
     permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
     
     fields = ['notes', 'group']
@@ -995,7 +995,7 @@ class Update_Group(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTemp
     model = genome_models.Group
     context_object_name = 'group'
     template_name = 'genome/update_group.html'
-    permission_required = 'genome.update_group'
+    permission_required = 'genome.change_group'
     permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
     
     fields = ['notes']
@@ -1008,7 +1008,7 @@ class Update_Genome(LoginRequiredMixin, PermissionRequiredMixin, MixinForBaseTem
     model = genome_models.Genome
     context_object_name = 'genome'
     template_name = 'genome/update_genome.html'
-    permission_required = 'genome.update_genome'
+    permission_required = 'genome.change_genome'
     permission_denied_message = 'You do not have permission to access this page. Please contact your administrator.'
     
     fields = ['notes', 'group']
