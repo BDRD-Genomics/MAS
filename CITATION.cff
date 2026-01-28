@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Lueder"
+  given-names: "Matthew R."
+  orcid: "https://orcid.org/0009-0002-7370-102X"
+- family-names: "Cer"
+  given-names: "Regina Z."
+  orcid: "https://orcid.org/0000-0002-2395-980X"
+- family-names: "Patrick"
+  given-names: "Miles"
+  orcid: ""
+- family-names: "Voegtly"
+  given-names: "Logan J."
+  orcid: "https://orcid.org/0000-0003-0580-3702"
+- family-names: "Rice"
+  given-names: "Gregory K."
+  orcid: "https://orcid.org/0000-0001-8509-6379"
+- family-names: "Bishop-Lilly"
+  given-names: "Kimberly A."
+  orcid: "https://orcid.org/0000-0002-5744-8493"
+title: "MAS"
+version: 1.0.0
+doi: 10.5281/zenodo.1234
+date-released: 2021-10-09
+url: "https://github.com/BDRD-Genomics/MAS"
